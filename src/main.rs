@@ -10,19 +10,17 @@ fn main() {
             c = 1 * 2;
             break;
         }
-    }
-    if 1 {
-        if 2 {
-            0;
-        }
-        if 3 {
-            0;
+        else {
+            continue
         }
     }
+    a;
+    b;
+    c;
     ";
     let lexer_rules = lexer::lexer_rules();
-    let lexemes = santiago::lexer::lex(&lexer_rules, &input).expect("[lexer error]");
-    // println!("{:#?}", lexemes);
+    let lexemes = santiago::lexer::lex(&lexer_rules, input).expect("[lexer error]");
+    println!("{:?}", lexemes.iter().map(|x| &x.raw).collect::<Vec<&String>>());
 
     let grammar = grammar::grammar();
     let parse_trees = santiago::parser::parse(&grammar, &lexemes).expect("[parse error]");
