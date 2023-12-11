@@ -10,6 +10,8 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop().unwrap()
         };
         "cmd" => rules "expr";
+        "cmd" => rules "break";
+        "cmd" => rules "continue";
         "cmd" => rules "expr" "=" "expr" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
@@ -29,7 +31,14 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             Cmd::Seq(Box::new(left), Box::new(right))
         };
-        "cmd" => rules "if" "expr" "then" "{" "cmd" "}" "else" "{" "cmd" "}" => |rules| {
+        "cmd" => rules "cmd_block";
+        "cmd" => rules "cmd_block" "cmd" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let right: Cmd = rules.pop().unwrap();
+            let left: Cmd = rules.pop().unwrap();
+            Cmd::Seq(Box::new(left), Box::new(right))
+        };
+        "cmd_block" => rules "if" "expr" "then" "{" "cmd" "}" "else" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let else_branch: Cmd = rules.pop().unwrap();
@@ -42,7 +51,7 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             unreachable!();
         };
-        "cmd" => rules "if" "expr" "{" "cmd" "}" "else" "{" "cmd" "}" => |rules| {
+        "cmd_block" => rules "if" "expr" "{" "cmd" "}" "else" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let else_branch: Cmd = rules.pop().unwrap();
@@ -55,7 +64,29 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             unreachable!();
         };
-        "cmd" => rules "while" "expr" "do" "{" "cmd" "}" => |rules| {
+        "cmd_block" => rules "if" "expr" "then" "{" "cmd" "}" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            let if_branch: Cmd = rules.pop().unwrap();
+            rules.pop(); rules.pop();
+            let cond: Cmd = rules.pop().unwrap();
+            if let Cmd::Expr(e) = cond {
+                return Cmd::If(Box::new(e), Box::new(if_branch), Box::new(Cmd::Nop));
+            }
+            unreachable!();
+        };
+        "cmd_block" => rules "if" "expr" "{" "cmd" "}" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            let if_branch: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let cond: Cmd = rules.pop().unwrap();
+            if let Cmd::Expr(e) = cond {
+                return Cmd::If(Box::new(e), Box::new(if_branch), Box::new(Cmd::Nop));
+            }
+            unreachable!();
+        };
+        "cmd_block" => rules "while" "expr" "do" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let body: Cmd = rules.pop().unwrap();
@@ -66,7 +97,7 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             unreachable!();
         };
-        "cmd" => rules "while" "expr" "{" "cmd" "}" => |rules| {
+        "cmd_block" => rules "while" "expr" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let body: Cmd = rules.pop().unwrap();
@@ -302,6 +333,8 @@ pub fn grammar() -> Grammar<Cmd> {
         "else" => lexemes "ELSE" => |_| Cmd::Nop;
         "while" => lexemes "WHILE" => |_| Cmd::Nop;
         "do" => lexemes "DO" => |_| Cmd::Nop;
+        "continue" => lexemes "CONTINUE" => |_| Cmd::Continue;
+        "break" => lexemes "BREAK" => |_| Cmd::Break;
         "ident" => lexemes "IDENT" => |lexemes| {
             Cmd::Expr(Expr::Var(lexemes[0].raw.to_string()))
         };

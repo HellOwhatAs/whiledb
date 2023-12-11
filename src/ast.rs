@@ -5,6 +5,8 @@ pub enum Cmd {
     If(Box<Expr>, Box<Cmd>, Box<Cmd>),
     While(Box<Expr>, Box<Cmd>),
     Expr(Expr),
+    Continue,
+    Break,
     Nop
 }
 
