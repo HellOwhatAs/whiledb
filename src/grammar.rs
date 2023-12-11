@@ -4,6 +4,11 @@ use crate::ast::*;
 
 pub fn grammar() -> Grammar<Cmd> {
     santiago::grammar!(
+        "cmd" => rules "cmd" "useless_semicol" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            rules.pop().unwrap()
+        };
         "cmd" => rules "expr";
         "cmd" => rules "expr" "=" "expr" => |rules| {
             let mut rules: Vec<Cmd> = rules;
@@ -301,6 +306,7 @@ pub fn grammar() -> Grammar<Cmd> {
             Cmd::Expr(Expr::Var(lexemes[0].raw.to_string()))
         };
         ";" => lexemes "SEMICOL" => |_| Cmd::Nop;
+        "useless_semicol" => lexemes "SEMICOL" => |_| Cmd::Nop;
         "," => lexemes "COMMA" => |_| Cmd::Nop;
         "(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
         ")" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
@@ -333,5 +339,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::None => rules "deref" "negate" "not";
         // Associativity::Left => rules "(" ")";
         Associativity::Right => rules ";";
+        Associativity::Left => rules "useless_semicol";
     )
 }
