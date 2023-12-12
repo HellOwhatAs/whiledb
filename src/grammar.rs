@@ -9,18 +9,38 @@ pub fn grammar() -> Grammar<Cmd> {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             let left: Cmd = rules.pop().unwrap();
-            Cmd::Seq(Box::new(left), Box::new(right))
+            if let Cmd::Nop = right {
+                left
+            }
+            else {
+                Cmd::Seq(Box::new(left), Box::new(right))
+            }
         };
         "cmd" => rules "cmd_simple" ";" "cmd" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
-            Cmd::Seq(Box::new(left), Box::new(right))
+            if let Cmd::Nop = right {
+                left
+            }
+            else {
+                Cmd::Seq(Box::new(left), Box::new(right))
+            }
         };
         "cmd_simple" => rules "expr";
         "cmd_simple" => rules "break";
         "cmd_simple" => rules "continue";
+        "cmd_simple" => rules "return" "expr" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let val: Cmd = rules.pop().unwrap();
+            if let Cmd::Expr(e) = val {
+                return Cmd::Return(Box::new(e));
+            }
+            else {
+                unreachable!();
+            }
+        };
         "cmd_simple" => rules "expr" "=" "expr" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
@@ -103,29 +123,68 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             unreachable!();
         };
+        "cmd_block" => rules "fn" "ident" "(" "ident_list" ")" "{" "cmd" "}" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            let body: Cmd = rules.pop().unwrap();
+            rules.pop(); rules.pop();
+            let args: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let func_name: Cmd = rules.pop().unwrap();
+            if let Cmd::Expr(Expr::Var(func_name)) = func_name {
+                let args = match args {
+                    Cmd::Nop => None,
+                    Cmd::Expr(e) => {
+                        Some(Box::new(e))
+                    },
+                    _ => unreachable!()
+                };
+                Cmd::Func(func_name, args, Box::new(body))
+            }
+            else {
+                unreachable!()
+            }
+        };
 
+        "ident_list" => empty => |_| Cmd::Nop;
+        "ident_list" => rules "ident";
+        "ident_list" => rules "ident" "," "ident_list" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let right = rules.pop().unwrap();
+            rules.pop();
+            let left = rules.pop().unwrap();
+            if let Cmd::Nop = right {
+                left
+            }
+            else {
+                if let (Cmd::Expr(le), Cmd::Expr(re)) = (left, right) {
+                    Cmd::Expr(Expr::Tuple(Box::new(le), Box::new(re)))
+
+                }
+                else {
+                    unreachable!()
+                }
+            }
+        };
+        
+        "expr_list" => empty => |_| Cmd::Nop;
         "expr_list" => rules "expr";
         "expr_list" => rules "expr" "," "expr_list" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
-            if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Expr::Tuple(Box::new(expr_left), Box::new(expr_right)));
+
+            match right {
+                Cmd::Expr(expr_right) => {
+                    if let Cmd::Expr(expr_left) = left {
+                        Cmd::Expr(Expr::Tuple(Box::new(expr_left), Box::new(expr_right)))
+                    }
+                    else { unreachable!() }
+                },
+                Cmd::Nop => left,
+                _ => unreachable!()
             }
-            else {
-                unreachable!();
-            }
-        };
-        "expr" => rules "ident" "("  ")" => |rules| {
-            let mut rules: Vec<Cmd> = rules;
-            rules.pop();
-            rules.pop();
-            let ident: Cmd = rules.pop().unwrap();
-            if let Cmd::Expr(Expr::Var(s)) = ident {
-                return Cmd::Expr(Expr::Call(s, None));
-            }
-            unreachable!();
         };
         "expr" => rules "ident" "(" "expr_list" ")" => |rules| {
             let mut rules: Vec<Cmd> = rules;
@@ -133,10 +192,11 @@ pub fn grammar() -> Grammar<Cmd> {
             let expr_list: Cmd = rules.pop().unwrap();
             rules.pop();
             let ident: Cmd = rules.pop().unwrap();
-            if let (Cmd::Expr(Expr::Var(s)), Cmd::Expr(e)) = (ident, expr_list) {
-                return Cmd::Expr(Expr::Call(s, Some(Box::new(e))));
+            match (ident, expr_list) {
+                (Cmd::Expr(Expr::Var(s)), Cmd::Expr(e)) => Cmd::Expr(Expr::Call(s, Some(Box::new(e)))),
+                (Cmd::Expr(Expr::Var(s)), Cmd::Nop) => Cmd::Expr(Expr::Call(s, None)),
+                _ => unreachable!()
             }
-            unreachable!();
         };
 
         "expr" => rules "int";
@@ -330,6 +390,8 @@ pub fn grammar() -> Grammar<Cmd> {
         "do" => lexemes "DO" => |_| Cmd::Nop;
         "continue" => lexemes "CONTINUE" => |_| Cmd::Continue;
         "break" => lexemes "BREAK" => |_| Cmd::Break;
+        "fn" => lexemes "FUNC" => |_| Cmd::Nop;
+        "return" => lexemes "RETURN" => |_| Cmd::Nop;
         "ident" => lexemes "IDENT" => |lexemes| {
             Cmd::Expr(Expr::Var(lexemes[0].raw.to_string()))
         };

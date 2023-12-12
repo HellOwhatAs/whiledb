@@ -7,6 +7,8 @@ pub enum Cmd {
     Expr(Expr),
     Continue,
     Break,
+    Func(String, Option<Box<Expr>>, Box<Cmd>),
+    Return(Box<Expr>),
     Nop
 }
 
@@ -21,25 +23,7 @@ pub enum Expr {
 }
 
 #[derive(Debug)]
-pub enum BinOp {
-    Plus,
-    Minus,
-    Mul,
-    Div,
-    Mod,
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    Eq,
-    Ne,
-    And,
-    Or    
-}
+pub enum BinOp { Plus, Minus, Mul, Div, Mod, Lt, Gt, Le, Ge, Eq, Ne, And, Or }
 
 #[derive(Debug)]
-pub enum UnOp {
-    Negate,
-    Not,
-    Deref
-}
+pub enum UnOp { Negate, Not, Deref }

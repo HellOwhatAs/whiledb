@@ -1,0 +1,19 @@
+fn func(arg1, arg2, arg3) {
+    return expr;
+}
+
+fn func2() {
+    if true {
+        return false;
+    }
+    fn in_func2(a, b,) {
+        while true {
+            return 10;
+        }
+    }
+}
+
+func2();
+func2(1);
+func2(1,2);
+func2(1,2,3,);

@@ -10,6 +10,8 @@ pub fn lexer_rules() -> LexerRules {
         "DEFAULT" | "DO" = string "do";
         "DEFAULT" | "CONTINUE" = string "continue";
         "DEFAULT" | "BREAK" = string "break";
+        "DEFAULT" | "FUNC" = string "fn";
+        "DEFAULT" | "RETURN" = string "return";
         "DEFAULT" | "IDENT" = pattern r"[_A-Za-z][_A-Za-z0-9]*";
         "DEFAULT" | "SEMICOL" = string ";";
         "DEFAULT" | "COMMA" = string ",";
