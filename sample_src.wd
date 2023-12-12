@@ -1,3 +1,4 @@
+/* Can be found at: https://github.com/gzqaq/CS2612-PLaC/tree/main/assigns/assign1202/C/samples */
 // sample_src00
 n = read_int();
 m = n + 1;
@@ -40,8 +41,8 @@ n = read_int();
 i = 0;
 s = 0;
 while (i < n) do {
-  s = s + read_int();
-  i = i + 1;
+    s = s + read_int();
+    i = i + 1;
 }
 write_int(s);
 write_char(10);
@@ -53,6 +54,50 @@ if (n >= 0) then {
     write_int(n);
 }
 else {
-  write_int(- n);
+    write_int(- n);
 }
 write_char(10);
+
+
+// sample_src04
+n = read_int();
+i = 0;
+p = 0;
+while (i < n) do {
+    q = malloc(16);
+    * q = read_int();
+    * (q + 8) = p;
+    p = q;
+    i = i + 1;
+}
+s = 0;
+while (p != 0) do {
+    s = s + * p;
+    p = * (p + 8);
+}
+write_int(s);
+write_char(10);
+
+
+// sample_src05
+n = read_int();
+m = - n * n;
+m = * n - 1;
+write_int(m + 2);
+
+
+// sample_src06
+x = read_int();
+if (x > 0) then {
+    while (x > 0) do {
+        x = x - 1;
+    }
+}
+else {
+    if (x < 0) then {
+        write_int(0);
+    }
+    else {
+      write_int(1);
+    }
+}
