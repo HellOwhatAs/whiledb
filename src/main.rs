@@ -1,11 +1,18 @@
 mod lexer;
 mod ast;
 mod grammar;
+mod src_error;
 
 fn main() {
-    let input = include_str!("../sample_src.wd");
+    let input = include_str!("../test.wd");
     let lexer_rules = lexer::lexer_rules();
-    let lexemes = santiago::lexer::lex(&lexer_rules, input).expect("[lexer error]");
+    let lexemes = match santiago::lexer::lex(&lexer_rules, input) {
+        Ok(lexemes) => lexemes,
+        Err(err) => {
+            eprintln!("{}", src_error::lexer_error(input, &err));
+            return;
+        },
+    };
     println!("{:?}", lexemes.iter().map(|x| &x.raw).collect::<Vec<&String>>());
 
     let grammar = grammar::grammar();
