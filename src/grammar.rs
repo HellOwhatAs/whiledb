@@ -437,14 +437,11 @@ pub fn grammar() -> Grammar<Cmd> {
         "or" => lexemes "OR" => |_| Cmd::Nop;
         "not" => lexemes "NOT" => |_| Cmd::Nop;
 
-        // Associativity::None => rules "=";
         Associativity::Left => rules "or";
         Associativity::Left => rules "and";
         Associativity::Left => rules ">" ">=" "<" "<=" "==" "!=";
         Associativity::Left => rules "+" "-";
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
-        // Associativity::Left => rules "(" ")";
-        // Associativity::Right => rules ";";
     )
 }
