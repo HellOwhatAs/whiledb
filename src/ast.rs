@@ -4,7 +4,7 @@ pub enum Cmd {
     Seq(Box<Cmd>, Box<Cmd>),
     If(Box<Expr>, Box<Cmd>, Box<Cmd>),
     While(Box<Expr>, Box<Cmd>),
-    Expr(Expr),
+    Expr(Box<Expr>),
     Continue,
     Break,
     Func(String, Option<Box<Expr>>, Box<Cmd>),
