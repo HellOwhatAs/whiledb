@@ -4,15 +4,24 @@ use crate::ast::*;
 
 pub fn grammar() -> Grammar<Cmd> {
     santiago::grammar!(
-        "cmd" => rules "cmd" "useless_semicol" => |rules| {
+        "cmd" => empty => |_| Cmd::Nop;
+        "cmd" => rules "cmd_block" "cmd" => |rules| {
             let mut rules: Vec<Cmd> = rules;
-            rules.pop();
-            rules.pop().unwrap()
+            let right: Cmd = rules.pop().unwrap();
+            let left: Cmd = rules.pop().unwrap();
+            Cmd::Seq(Box::new(left), Box::new(right))
         };
-        "cmd" => rules "expr";
-        "cmd" => rules "break";
-        "cmd" => rules "continue";
-        "cmd" => rules "expr" "=" "expr" => |rules| {
+        "cmd" => rules "cmd_simple" ";" "cmd" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let right: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let left: Cmd = rules.pop().unwrap();
+            Cmd::Seq(Box::new(left), Box::new(right))
+        };
+        "cmd_simple" => rules "expr";
+        "cmd_simple" => rules "break";
+        "cmd_simple" => rules "continue";
+        "cmd_simple" => rules "expr" "=" "expr" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             rules.pop();
@@ -23,20 +32,6 @@ pub fn grammar() -> Grammar<Cmd> {
             else {
                 unreachable!();
             }
-        };
-        "cmd" => rules "cmd" ";" "cmd" => |rules| {
-            let mut rules: Vec<Cmd> = rules;
-            let right: Cmd = rules.pop().unwrap();
-            rules.pop();
-            let left: Cmd = rules.pop().unwrap();
-            Cmd::Seq(Box::new(left), Box::new(right))
-        };
-        "cmd" => rules "cmd_block";
-        "cmd" => rules "cmd_block" "cmd" => |rules| {
-            let mut rules: Vec<Cmd> = rules;
-            let right: Cmd = rules.pop().unwrap();
-            let left: Cmd = rules.pop().unwrap();
-            Cmd::Seq(Box::new(left), Box::new(right))
         };
         "cmd_block" => rules "if" "expr" "then" "{" "cmd" "}" "else" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
@@ -339,7 +334,6 @@ pub fn grammar() -> Grammar<Cmd> {
             Cmd::Expr(Expr::Var(lexemes[0].raw.to_string()))
         };
         ";" => lexemes "SEMICOL" => |_| Cmd::Nop;
-        "useless_semicol" => lexemes "SEMICOL" => |_| Cmd::Nop;
         "," => lexemes "COMMA" => |_| Cmd::Nop;
         "(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
         ")" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
@@ -371,7 +365,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
         // Associativity::Left => rules "(" ")";
-        Associativity::Right => rules ";";
-        Associativity::Left => rules "useless_semicol";
+        // Associativity::Right => rules ";";
     )
 }

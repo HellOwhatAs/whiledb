@@ -11,9 +11,9 @@ fn main() {
             break;
         }
         else {
-            continue
+            continue;
         }
-    }
+    };
     a;
     b;
     c;
