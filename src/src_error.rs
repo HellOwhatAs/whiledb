@@ -3,6 +3,13 @@ use santiago::lexer::LexerError;
 use santiago::parser::ParseError;
 use crate::ast::*;
 
+#[derive(Debug)]
+pub enum SrcError<Val> {
+    LexerError(LexerError, String),
+    ParseError(ParseError<Cmd>, String),
+    SelfError(String),
+    SelfWarning(Val, String)
+}
 
 fn line_start(num: usize, num_width: usize) -> String {
     let num = num.to_string();
