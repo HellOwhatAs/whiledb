@@ -32,6 +32,8 @@ pub fn lexer_rules() -> LexerRules {
         "DEFAULT" | "AND" = string "&&";
         "DEFAULT" | "OR" = string "||";
         "DEFAULT" | "NOT" = string "!";
+        "DEFAULT" | "COMMENT" = pattern r"//[^\r\n]*" => |lexer| lexer.skip();
+        "DEFAULT" | "COMMENT" = pattern r"/\*([^*]|\*+[^*/])*\*+/" => |lexer| lexer.skip();
         "DEFAULT" | "WS" = pattern r"\s" => |lexer| lexer.skip();
     )
 }
