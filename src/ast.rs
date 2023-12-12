@@ -1,13 +1,15 @@
+use std::collections::VecDeque;
+
 #[derive(Debug)]
 pub enum Cmd {
     Asgn(Box<Expr>, Box<Expr>),
-    Seq(Box<Cmd>, Box<Cmd>),
+    Seq(VecDeque<Cmd>),
     If(Box<Expr>, Box<Cmd>, Box<Cmd>),
     While(Box<Expr>, Box<Cmd>),
     Expr(Box<Expr>),
     Continue,
     Break,
-    Func(String, Option<Box<Expr>>, Box<Cmd>),
+    Func(String, Box<Expr>, Box<Cmd>),
     Return(Box<Expr>),
     Nop
 }
@@ -18,8 +20,8 @@ pub enum Expr {
     Var(String),
     BinOp(BinOp, Box<Expr>, Box<Expr>),
     UnOp(UnOp, Box<Expr>),
-    Call(String, Option<Box<Expr>>),
-    Tuple(Box<Expr>, Box<Expr>)
+    Call(String, Box<Expr>),
+    Tuple(VecDeque<Expr>)
 }
 
 #[derive(Debug)]

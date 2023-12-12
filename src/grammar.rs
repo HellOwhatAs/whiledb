@@ -1,19 +1,21 @@
+use std::collections::VecDeque;
 use santiago::grammar::Associativity;
 use santiago::grammar::Grammar;
 use crate::ast::*;
 
 pub fn grammar() -> Grammar<Cmd> {
     santiago::grammar!(
-        "cmd" => empty => |_| Cmd::Nop;
+        "cmd" => empty => |_| Cmd::Seq(VecDeque::new());
         "cmd" => rules "cmd_block" "cmd" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             let left: Cmd = rules.pop().unwrap();
-            if let Cmd::Nop = right {
-                left
-            }
-            else {
-                Cmd::Seq(Box::new(left), Box::new(right))
+            match right {
+                Cmd::Seq(mut right) => {
+                    right.push_front(left);
+                    Cmd::Seq(right)
+                },
+                _ => unreachable!()
             }
         };
         "cmd" => rules "cmd_simple" ";" "cmd" => |rules| {
@@ -21,11 +23,12 @@ pub fn grammar() -> Grammar<Cmd> {
             let right: Cmd = rules.pop().unwrap();
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
-            if let Cmd::Nop = right {
-                left
-            }
-            else {
-                Cmd::Seq(Box::new(left), Box::new(right))
+            match right {
+                Cmd::Seq(mut right) => {
+                    right.push_front(left);
+                    Cmd::Seq(right)
+                },
+                _ => unreachable!()
             }
         };
         "cmd_simple" => rules "expr";
@@ -133,10 +136,7 @@ pub fn grammar() -> Grammar<Cmd> {
             let func_name: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(func_name) = func_name {
                 let args = match args {
-                    Cmd::Nop => None,
-                    Cmd::Expr(e) => {
-                        Some(e)
-                    },
+                    Cmd::Expr(e) => e,
                     _ => unreachable!()
                 };
                 let func_name = match *func_name {
@@ -150,43 +150,54 @@ pub fn grammar() -> Grammar<Cmd> {
             }
         };
 
-        "ident_list" => empty => |_| Cmd::Nop;
-        "ident_list" => rules "ident";
+        "ident_list" => empty => |_| Cmd::Expr(Box::new(Expr::Tuple(VecDeque::new())));
+        "ident_list" => rules "ident" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let expr: Cmd = rules.pop().unwrap();
+            match expr {
+                Cmd::Expr(expr) => Cmd::Expr(Box::new(Expr::Tuple(VecDeque::from_iter([*expr])))),
+                _ => unreachable!()
+            }
+        };
         "ident_list" => rules "ident" "," "ident_list" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right = rules.pop().unwrap();
             rules.pop();
             let left = rules.pop().unwrap();
-            if let Cmd::Nop = right {
-                left
-            }
-            else {
-                if let (Cmd::Expr(le), Cmd::Expr(re)) = (left, right) {
-                    Cmd::Expr(Box::new(Expr::Tuple(le, re)))
-
+            match right {
+                Cmd::Expr(ident_right) => {
+                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, *ident_right) {
+                        expr_right.push_front(*expr_left);
+                        Cmd::Expr(Box::new(Expr::Tuple(expr_right)))
+                    }
+                    else { unreachable!() }
                 }
-                else {
-                    unreachable!()
-                }
+                _ => unreachable!()
             }
         };
         
-        "expr_list" => empty => |_| Cmd::Nop;
-        "expr_list" => rules "expr";
+        "expr_list" => empty => |_| Cmd::Expr(Box::new(Expr::Tuple(VecDeque::new())));
+        "expr_list" => rules "expr" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let expr: Cmd = rules.pop().unwrap();
+            match expr {
+                Cmd::Expr(expr) => Cmd::Expr(Box::new(Expr::Tuple(VecDeque::from_iter([*expr])))),
+                _ => unreachable!()
+            }
+        };
         "expr_list" => rules "expr" "," "expr_list" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let right: Cmd = rules.pop().unwrap();
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
-
             match right {
                 Cmd::Expr(expr_right) => {
-                    if let Cmd::Expr(expr_left) = left {
-                        Cmd::Expr(Box::new(Expr::Tuple(expr_left, expr_right)))
+                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, *expr_right) {
+                        expr_right.push_front(*expr_left);
+                        Cmd::Expr(Box::new(Expr::Tuple(expr_right)))
                     }
                     else { unreachable!() }
                 },
-                Cmd::Nop => left,
                 _ => unreachable!()
             }
         };
@@ -201,8 +212,7 @@ pub fn grammar() -> Grammar<Cmd> {
                 _ => unreachable!()
             };
             match (*ident, expr_list) {
-                (Expr::Var(s), Cmd::Expr(e)) => Cmd::Expr(Box::new(Expr::Call(s, Some(e)))),
-                (Expr::Var(s), Cmd::Nop) => Cmd::Expr(Box::new(Expr::Call(s, None))),
+                (Expr::Var(s), Cmd::Expr(e)) => Cmd::Expr(Box::new(Expr::Call(s, e))),
                 _ => unreachable!()
             }
         };
