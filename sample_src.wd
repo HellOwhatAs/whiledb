@@ -10,9 +10,9 @@ n = read_int();
 i = 2;
 flag = 1;
 while (flag && i * i <= n) do {
-  if (n % i == 0) then { flag = 0; }
-  else { flag = 1; }
-  i = i + 1;
+    if (n % i == 0) then { flag = 0; }
+    else { flag = 1; }
+    i = i + 1;
 }
 if (flag) then {
     write_char(80);
