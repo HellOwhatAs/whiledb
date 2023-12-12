@@ -1,7 +1,7 @@
 mod lexer;
-mod ast;
+pub mod ast;
 mod grammar;
-mod src_error;
+pub mod src_error;
 
 use ast::Cmd;
 use src_error::{SrcError, lexer_error_msg, parse_error_msg};
