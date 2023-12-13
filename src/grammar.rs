@@ -126,7 +126,8 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             unreachable!();
         };
-        "cmd_block" => rules "fn" "ident" "(" "ident_list" ")" "{" "cmd" "}" => |rules| {
+        "cmd_block" => rules "fn_block";
+        "fn_block" => rules "fn" "ident" "(" "ident_list" ")" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let body: Cmd = rules.pop().unwrap();

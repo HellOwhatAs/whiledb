@@ -1,8 +1,33 @@
 # WhileDB
-rust implementation of https://github.com/HellOwhatAs/While-DB
+rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the programming language used in SJTU CS2612 (2022 Fall) Attachment 1014
 
-# TODO
+## TODO
 - [x] find a way to omit `;` after `}`
   currently unable to add `;`, however
 - [x] add function
+- [ ] make any expression callable (currently only `ident` callable)
+- [ ] add `[` `]` to represent array and getitem
+  ```
+  // expr
+  [expr_list]
+
+  // expr
+  expr[expr_list]
+  ```
+- [ ] add class and method
+  ```
+  // cmd_block
+  class ident {
+      fn_block
+      fn_block
+  }
+
+  // expr
+  expr.ident
+  ```
 - [ ] add interpreter or compiler
+
+
+## Future Work
+- [x] python binding: [WhileDB.rs](https://github.com/HellOwhatAs/WhileDB.rs)
+- [ ] wasm
