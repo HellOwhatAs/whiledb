@@ -16,7 +16,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
   // expr
   expr.ident
   ```
-- [ ] add `[` `]` to represent array and getitem
+- [x] add `[` `]` to represent array and getitem
   ```
   // expr
   [expr_list]
