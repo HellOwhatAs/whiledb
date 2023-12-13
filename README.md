@@ -6,14 +6,6 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
   currently unable to add `;`, however
 - [x] add function
 - [x] make any expression callable (currently only `ident` callable)
-- [ ] add `[` `]` to represent array and getitem
-  ```
-  // expr
-  [expr_list]
-
-  // expr
-  expr[expr_list]
-  ```
 - [ ] add class and method
   ```
   // cmd_block
@@ -25,6 +17,15 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
   // expr
   expr.ident
   ```
+- [ ] add `[` `]` to represent array and getitem
+  ```
+  // expr
+  [expr_list]
+
+  // expr
+  expr[expr_list]
+  ```
+- [ ] add string
 - [ ] add interpreter or compiler
 
 
