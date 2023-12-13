@@ -42,10 +42,23 @@ mod tests {
     use crate::parse;
     #[test]
     fn sample_src() {
-        println!("{:?}", parse(include_str!("../sample_src.wd")).unwrap());
+        match parse(include_str!("../tests/sample_src.wd")) {
+            Ok(res) => println!("{:?}", res),
+            Err(err) => panic!("{}", err)
+        }
     }
     #[test]
     fn test() {
-        println!("{:?}", parse(include_str!("../test.wd")).unwrap());
+        match parse(include_str!("../tests/test.wd")) {
+            Ok(res) => println!("{:?}", res),
+            Err(err) => panic!("{}", err)
+        }
+    }
+    #[test]
+    fn test2() {
+        match parse(include_str!("../tests/test2.wd")) {
+            Ok(res) => println!("{:?}", res),
+            Err(err) => println!("{}", err)
+        }
     }
 }

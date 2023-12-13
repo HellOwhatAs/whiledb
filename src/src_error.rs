@@ -11,6 +11,17 @@ pub enum SrcError<Val> {
     SelfWarning(Val, String)
 }
 
+impl<Val> std::fmt::Display for SrcError<Val> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            SrcError::LexerError(_, msg) => msg,
+            SrcError::ParseError(_, msg) => msg,
+            SrcError::SelfError(msg) => msg,
+            SrcError::SelfWarning(_, msg) => msg,
+        })
+    }
+}
+
 fn line_start(num: usize, num_width: usize) -> String {
     let num = num.to_string();
     return " ".repeat(num_width - num.len()) + &num + " ";
