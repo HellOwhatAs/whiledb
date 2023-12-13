@@ -1,1 +1,8 @@
-func() = 1000;
+while (1 + 1) {
+    a()()() = func1() + func2();
+    a();
+}
+
+if func2()() {
+    func4();
+}

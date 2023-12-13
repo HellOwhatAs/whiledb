@@ -20,7 +20,7 @@ pub enum Expr {
     Var(String),
     BinOp(BinOp, Box<Expr>, Box<Expr>),
     UnOp(UnOp, Box<Expr>),
-    Call(String, Box<Expr>),
+    Call(Box<Expr>, Box<Expr>),
     Tuple(VecDeque<Expr>)
 }
 

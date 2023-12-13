@@ -5,7 +5,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
 - [x] find a way to omit `;` after `}`
   currently unable to add `;`, however
 - [x] add function
-- [ ] make any expression callable (currently only `ident` callable)
+- [x] make any expression callable (currently only `ident` callable)
 - [ ] add `[` `]` to represent array and getitem
   ```
   // expr

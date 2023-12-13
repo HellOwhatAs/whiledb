@@ -202,18 +202,14 @@ pub fn grammar() -> Grammar<Cmd> {
                 _ => unreachable!()
             }
         };
-        "expr" => rules "ident" "(" "expr_list" ")" => |rules| {
+        "expr" => rules "expr" "fn(" "expr_list" ")fn" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let expr_list: Cmd = rules.pop().unwrap();
             rules.pop();
-            let ident: Cmd = rules.pop().unwrap();
-            let ident = match ident {
-                Cmd::Expr(ident) => ident,
-                _ => unreachable!()
-            };
-            match (*ident, expr_list) {
-                (Expr::Var(s), Cmd::Expr(e)) => Cmd::Expr(Box::new(Expr::Call(s, e))),
+            let func: Cmd = rules.pop().unwrap();
+            match (func, expr_list) {
+                (Cmd::Expr(func), Cmd::Expr(expr_list)) => Cmd::Expr(Box::new(Expr::Call(func, expr_list))),
                 _ => unreachable!()
             }
         };
@@ -418,6 +414,8 @@ pub fn grammar() -> Grammar<Cmd> {
         "," => lexemes "COMMA" => |_| Cmd::Nop;
         "(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
         ")" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
+        "fn(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
+        ")fn" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
         "{" => lexemes "LEFT_BRACE" => |_| Cmd::Nop;
         "}" => lexemes "RIGHT_BRACE" => |_| Cmd::Nop;
         "+" => lexemes "PLUS" => |_| Cmd::Nop;
@@ -444,5 +442,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::Left => rules "+" "-";
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
+        Associativity::None => rules "fn(" ")fn";
     )
 }

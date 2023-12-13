@@ -26,12 +26,13 @@ pub fn parse(input: &str) -> Result<Cmd, SrcError<Cmd>> {
     };
     let mut asts = parse_trees.into_iter().map(|e| e.as_abstract_syntax_tree()).collect::<Vec<_>>();
     match asts.len() {
-        0 => {
-            Err(SrcError::SelfError("No any possible Parse Tree. Incorrect parse rules.".to_string()))
-        },
+        0 => Err(SrcError::SelfError("No any possible Parse Tree. Incorrect parse rules.".to_string())),
         1 => Ok(asts.pop().unwrap()),
         _ => {
-            Err(SrcError::SelfWarning(asts.pop().unwrap(), "No any possible Parse Tree. Incorrect parse rules.".to_string()))
+            use colored::Colorize;
+            let n = asts.len();
+            eprintln!("{}", format!("{:?}", asts).bright_yellow());
+            Err(SrcError::SelfWarning(asts.pop().unwrap(), format!("Exists {n} possible Parse Tree. Ambiguous parse rules.")))
         }
     }
 }
@@ -58,7 +59,7 @@ mod tests {
     fn test2() {
         match parse(include_str!("../tests/test2.wd")) {
             Ok(res) => println!("{:?}", res),
-            Err(err) => println!("{}", err)
+            Err(err) => panic!("{}", err)
         }
     }
 }
