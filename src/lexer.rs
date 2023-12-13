@@ -22,6 +22,8 @@ pub fn lexer_rules() -> LexerRules {
         "DEFAULT" | "RIGHT_PAREN" = string ")";
         "DEFAULT" | "LEFT_BRACE" = string "{";
         "DEFAULT" | "RIGHT_BRACE" = string "}";
+        "DEFAULT" | "LEFT_BRACKET" = string "[";
+        "DEFAULT" | "RIGHT_BRACKET" = string "]";
         "DEFAULT" | "PLUS" = string "+";
         "DEFAULT" | "MINUS" = string "-";
         "DEFAULT" | "MUL" = string "*";

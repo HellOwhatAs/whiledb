@@ -244,6 +244,11 @@ pub fn grammar() -> Grammar<Cmd> {
                 _ => unreachable!()
             }
         };
+        "expr" => rules "[" "expr_list" "]" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            rules.pop().unwrap()
+        };
 
         "expr" => rules "int";
         "expr" => rules "float";
@@ -472,6 +477,8 @@ pub fn grammar() -> Grammar<Cmd> {
         ")fn" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
         "{" => lexemes "LEFT_BRACE" => |_| Cmd::Nop;
         "}" => lexemes "RIGHT_BRACE" => |_| Cmd::Nop;
+        "[" => lexemes "LEFT_BRACKET" => |_| Cmd::Nop;
+        "]" => lexemes "RIGHT_BRACKET" => |_| Cmd::Nop;
         "+" => lexemes "PLUS" => |_| Cmd::Nop;
         "-" => lexemes "MINUS" => |_| Cmd::Nop;
         "negate" => lexemes "MINUS" => |_| Cmd::Nop;
