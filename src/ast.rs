@@ -19,12 +19,13 @@ pub enum Cmd {
 pub enum Expr {
     ConstInt(String),
     ConstFloat(String),
+    Tuple(VecDeque<Expr>),
     Var(String),
     BinOp(BinOp, Box<Expr>, Box<Expr>),
     UnOp(UnOp, Box<Expr>),
     Call(Box<Expr>, Box<Expr>),
+    GetItem(Box<Expr>, Box<Expr>),
     GetAttr(Box<Expr>, String),
-    Tuple(VecDeque<Expr>)
 }
 
 #[derive(Debug)]

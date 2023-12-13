@@ -244,6 +244,17 @@ pub fn grammar() -> Grammar<Cmd> {
                 _ => unreachable!()
             }
         };
+        "expr" => rules "expr" "getitem[" "expr_list" "]getitem" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            let expr_list: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let expr: Cmd = rules.pop().unwrap();
+            match (expr, expr_list) {
+                (Cmd::Expr(expr), Cmd::Expr(expr_list)) => Cmd::Expr(Box::new(Expr::GetItem(expr, expr_list))),
+                _ => unreachable!()
+            }
+        };
         "expr" => rules "[" "expr_list" "]" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
@@ -479,6 +490,8 @@ pub fn grammar() -> Grammar<Cmd> {
         "}" => lexemes "RIGHT_BRACE" => |_| Cmd::Nop;
         "[" => lexemes "LEFT_BRACKET" => |_| Cmd::Nop;
         "]" => lexemes "RIGHT_BRACKET" => |_| Cmd::Nop;
+        "getitem[" => lexemes "LEFT_BRACKET" => |_| Cmd::Nop;
+        "]getitem" => lexemes "RIGHT_BRACKET" => |_| Cmd::Nop;
         "+" => lexemes "PLUS" => |_| Cmd::Nop;
         "-" => lexemes "MINUS" => |_| Cmd::Nop;
         "negate" => lexemes "MINUS" => |_| Cmd::Nop;
@@ -503,6 +516,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::Left => rules "+" "-";
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
-        Associativity::None => rules "call(" ")call" ".";
+        Associativity::None => rules "call(" ")call" "." "getitem[" "]getitem";
     )
 }

@@ -1,2 +1,9 @@
 a = [func1(), 2, 3, 4, 5];
-print([0, 1], [a, 3.14]);
+print(data[0, 1, [a, 3.14]]);
+
+
+a = 3.1415926;
+b = -1.0;
+print([a.abs + b.ok()].len() + c());
+
+a.b.c.d.e.f.g.h.i().j.k[j.m[n]];
