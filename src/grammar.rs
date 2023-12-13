@@ -233,7 +233,7 @@ pub fn grammar() -> Grammar<Cmd> {
                 _ => unreachable!()
             }
         };
-        "expr" => rules "expr" "fn(" "expr_list" ")fn" => |rules| {
+        "expr" => rules "expr" "call(" "expr_list" ")call" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
             let expr_list: Cmd = rules.pop().unwrap();
@@ -473,8 +473,8 @@ pub fn grammar() -> Grammar<Cmd> {
         "," => lexemes "COMMA" => |_| Cmd::Nop;
         "(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
         ")" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
-        "fn(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
-        ")fn" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
+        "call(" => lexemes "LEFT_PAREN" => |_| Cmd::Nop;
+        ")call" => lexemes "RIGHT_PAREN" => |_| Cmd::Nop;
         "{" => lexemes "LEFT_BRACE" => |_| Cmd::Nop;
         "}" => lexemes "RIGHT_BRACE" => |_| Cmd::Nop;
         "[" => lexemes "LEFT_BRACKET" => |_| Cmd::Nop;
@@ -503,6 +503,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::Left => rules "+" "-";
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
-        Associativity::None => rules "fn(" ")fn" ".";
+        Associativity::None => rules "call(" ")call" ".";
     )
 }
