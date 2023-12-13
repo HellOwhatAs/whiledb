@@ -1,1 +1,20 @@
 你好 = 世界;
+
+
+class list {
+    fn __init__(self, arg1) {
+        return self;
+    }
+    fn append(self, elem) {
+
+    }
+    fn pop(self, ) {
+        
+    }
+
+    fn build_class(self) {
+        class C {
+            
+        }
+    }
+}

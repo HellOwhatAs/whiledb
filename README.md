@@ -10,8 +10,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
   ```
   // cmd_block
   class ident {
-      fn_block
-      fn_block
+      fn_list
   }
 
   // expr

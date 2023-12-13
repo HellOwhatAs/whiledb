@@ -10,6 +10,7 @@ pub enum Cmd {
     Continue,
     Break,
     Func(String, Box<Expr>, Box<Cmd>),
+    Class(String, Box<Cmd>),
     Return(Box<Expr>),
     Nop
 }

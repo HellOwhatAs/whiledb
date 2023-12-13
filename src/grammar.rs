@@ -127,6 +127,7 @@ pub fn grammar() -> Grammar<Cmd> {
             unreachable!();
         };
         "cmd_block" => rules "fn_block";
+        "cmd_block" => rules "class_block";
         "fn_block" => rules "fn" "ident" "(" "ident_list" ")" "{" "cmd" "}" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             rules.pop();
@@ -148,6 +149,36 @@ pub fn grammar() -> Grammar<Cmd> {
             }
             else {
                 unreachable!()
+            }
+        };
+
+        "class_block" => rules "class" "ident" "{" "fn_list" "}" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            rules.pop();
+            let methods: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let class_name: Cmd = rules.pop().unwrap();
+            match class_name {
+                Cmd::Expr(class_name) => {
+                    match *class_name {
+                        Expr::Var(class_name) => Cmd::Class(class_name, Box::new(methods)),
+                        _ => unreachable!()
+                    }
+                },
+                _ => unreachable!()
+            }
+        };
+        "fn_list" => empty => |_| Cmd::Seq(VecDeque::new());
+        "fn_list" => rules "fn_block" "fn_list" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let right: Cmd = rules.pop().unwrap();
+            let left: Cmd = rules.pop().unwrap();
+            match right {
+                Cmd::Seq(mut right) => {
+                    right.push_front(left);
+                    Cmd::Seq(right)
+                },
+                _ => unreachable!()
             }
         };
 
@@ -406,6 +437,7 @@ pub fn grammar() -> Grammar<Cmd> {
         "continue" => lexemes "CONTINUE" => |_| Cmd::Continue;
         "break" => lexemes "BREAK" => |_| Cmd::Break;
         "fn" => lexemes "FUNC" => |_| Cmd::Nop;
+        "class" => lexemes "CLASS" => |_| Cmd::Nop;
         "return" => lexemes "RETURN" => |_| Cmd::Nop;
         "ident" => lexemes "IDENT" => |lexemes| {
             Cmd::Expr(Box::new(Expr::Var(lexemes[0].raw.to_string())))
