@@ -12,7 +12,7 @@ pub fn lexer_rules() -> LexerRules {
         "DEFAULT" | "BREAK" = string "break";
         "DEFAULT" | "FUNC" = string "fn";
         "DEFAULT" | "RETURN" = string "return";
-        "DEFAULT" | "IDENT" = pattern r"[_A-Za-z][_A-Za-z0-9]*";
+        "DEFAULT" | "IDENT" = pattern r"[_A-Za-z\u4e00-\u9fa5][_A-Za-z0-9\u4e00-\u9fa5]*";
         "DEFAULT" | "SEMICOL" = string ";";
         "DEFAULT" | "COMMA" = string ",";
         "DEFAULT" | "LEFT_PAREN" = string "(";
