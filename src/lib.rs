@@ -1,10 +1,11 @@
 mod lexer;
 pub mod ast;
 mod grammar;
-pub mod src_error;
+mod src_error;
 
 use ast::Cmd;
-use src_error::{SrcError, lexer_error_msg, parse_error_msg};
+pub use src_error::SrcError;
+use src_error::{lexer_error_msg, parse_error_msg};
 
 pub fn parse(input: &str) -> Result<Cmd, SrcError<Cmd>> {
     let lexer_rules = lexer::lexer_rules();
