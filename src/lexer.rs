@@ -3,6 +3,7 @@ use santiago::lexer::LexerRules;
 pub fn lexer_rules() -> LexerRules {
     santiago::lexer_rules!(
         "DEFAULT" | "INT" = pattern r"0|[1-9][0-9]*";
+        "DEFAULT" | "FLOAT" = pattern r"\d+\.\d+";
         "DEFAULT" | "IF" = string "if";
         "DEFAULT" | "THEN" = string "then";
         "DEFAULT" | "ELSE" = string "else";
@@ -13,6 +14,7 @@ pub fn lexer_rules() -> LexerRules {
         "DEFAULT" | "FUNC" = string "fn";
         "DEFAULT" | "CLASS" = string "class";
         "DEFAULT" | "RETURN" = string "return";
+        "DEFAULT" | "DOT" = string ".";
         "DEFAULT" | "IDENT" = pattern r"[_A-Za-z\u4e00-\u9fa5][_A-Za-z0-9\u4e00-\u9fa5]*";
         "DEFAULT" | "SEMICOL" = string ";";
         "DEFAULT" | "COMMA" = string ",";

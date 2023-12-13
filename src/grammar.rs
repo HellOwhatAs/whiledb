@@ -246,6 +246,7 @@ pub fn grammar() -> Grammar<Cmd> {
         };
 
         "expr" => rules "int";
+        "expr" => rules "float";
         "expr" => rules "(" "expr" ")" => |mut rules| {
             rules.pop();
             rules.pop().unwrap()
@@ -412,6 +413,23 @@ pub fn grammar() -> Grammar<Cmd> {
                 unreachable!();
             }
         };
+        "expr" => rules "expr" "." "ident" => |rules| {
+            let mut rules: Vec<Cmd> = rules;
+            let right: Cmd = rules.pop().unwrap();
+            rules.pop();
+            let left: Cmd = rules.pop().unwrap();
+            match (left, right) {
+                (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) => {
+                    match *expr_right {
+                        Expr::Var(attr) => {
+                            Cmd::Expr(Box::new(Expr::GetAttr(expr_left, attr)))
+                        },
+                        _ => unreachable!()
+                    }
+                },
+                _ => unreachable!()
+            }
+        };
         "expr" => rules "not" "expr" => |mut rules| {
             if let Cmd::Expr(e) = rules.pop().unwrap() {
                 return Cmd::Expr(Box::new(Expr::UnOp(UnOp::Not, e)));
@@ -427,7 +445,10 @@ pub fn grammar() -> Grammar<Cmd> {
         "expr" => rules "ident";
 
         "int" => lexemes "INT" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::Const(str::parse(&lexemes[0].raw).unwrap())))
+            Cmd::Expr(Box::new(Expr::ConstInt(lexemes[0].raw.clone())))
+        };
+        "float" => lexemes "FLOAT" => |lexemes| {
+            Cmd::Expr(Box::new(Expr::ConstFloat(lexemes[0].raw.clone())))
         };
         "if" => lexemes "IF" => |_| Cmd::Nop;
         "then" => lexemes "THEN" => |_| Cmd::Nop;
@@ -439,6 +460,7 @@ pub fn grammar() -> Grammar<Cmd> {
         "fn" => lexemes "FUNC" => |_| Cmd::Nop;
         "class" => lexemes "CLASS" => |_| Cmd::Nop;
         "return" => lexemes "RETURN" => |_| Cmd::Nop;
+        "." => lexemes "DOT" => |_| Cmd::Nop;
         "ident" => lexemes "IDENT" => |lexemes| {
             Cmd::Expr(Box::new(Expr::Var(lexemes[0].raw.to_string())))
         };
@@ -474,6 +496,6 @@ pub fn grammar() -> Grammar<Cmd> {
         Associativity::Left => rules "+" "-";
         Associativity::Left => rules "*" "/" "%";
         Associativity::None => rules "deref" "negate" "not";
-        Associativity::None => rules "fn(" ")fn";
+        Associativity::None => rules "fn(" ")fn" ".";
     )
 }

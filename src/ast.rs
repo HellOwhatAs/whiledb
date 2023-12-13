@@ -17,11 +17,13 @@ pub enum Cmd {
 
 #[derive(Debug)]
 pub enum Expr {
-    Const(isize),
+    ConstInt(String),
+    ConstFloat(String),
     Var(String),
     BinOp(BinOp, Box<Expr>, Box<Expr>),
     UnOp(UnOp, Box<Expr>),
     Call(Box<Expr>, Box<Expr>),
+    GetAttr(Box<Expr>, String),
     Tuple(VecDeque<Expr>)
 }
 

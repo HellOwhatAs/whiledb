@@ -6,7 +6,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
   currently unable to add `;`, however
 - [x] add function
 - [x] make any expression callable (currently only `ident` callable)
-- [ ] add class and method
+- [x] add class and method
   ```
   // cmd_block
   class ident {
