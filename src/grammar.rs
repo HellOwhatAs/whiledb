@@ -468,7 +468,7 @@ pub fn grammar() -> Grammar<Cmd> {
             Cmd::Expr(Box::new(Expr::ConstFloat(lexemes[0].raw.clone())))
         };
         "string" => lexemes "STRING" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::ConstString(syn::parse_str::<syn::LitStr>(&lexemes[0].raw).unwrap().value())))
+            Cmd::Expr(Box::new(Expr::ConstString(lexemes[0].raw.clone())))
         };
         "if" => lexemes "IF" => |_| Cmd::Nop;
         "then" => lexemes "THEN" => |_| Cmd::Nop;
