@@ -263,6 +263,7 @@ pub fn grammar() -> Grammar<Cmd> {
 
         "expr" => rules "int";
         "expr" => rules "float";
+        "expr" => rules "string";
         "expr" => rules "(" "expr" ")" => |mut rules| {
             rules.pop();
             rules.pop().unwrap()
@@ -465,6 +466,9 @@ pub fn grammar() -> Grammar<Cmd> {
         };
         "float" => lexemes "FLOAT" => |lexemes| {
             Cmd::Expr(Box::new(Expr::ConstFloat(lexemes[0].raw.clone())))
+        };
+        "string" => lexemes "STRING" => |lexemes| {
+            Cmd::Expr(Box::new(Expr::ConstString(syn::parse_str::<syn::LitStr>(&lexemes[0].raw).unwrap().value())))
         };
         "if" => lexemes "IF" => |_| Cmd::Nop;
         "then" => lexemes "THEN" => |_| Cmd::Nop;

@@ -4,6 +4,7 @@ pub fn lexer_rules() -> LexerRules {
     santiago::lexer_rules!(
         "DEFAULT" | "INT" = pattern r"0|[1-9][0-9]*";
         "DEFAULT" | "FLOAT" = pattern r"\d+\.\d+";
+        "DEFAULT" | "STRING" = pattern r#""(?:\\.|[^\\"])*""#;
         "DEFAULT" | "IF" = string "if";
         "DEFAULT" | "THEN" = string "then";
         "DEFAULT" | "ELSE" = string "else";

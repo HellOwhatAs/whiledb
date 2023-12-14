@@ -84,6 +84,9 @@ pub enum Expr {
     /// - `"float"`  
     ///   literal float matched by `\d+\.\d+`
     ConstFloat(String),
+    /// - `"string"`  
+    ///   literal string matched by `"(?:\\.|[^\\"])*"`
+    ConstString(String),
     /// - `"ident_list"`  
     ///   formal parameter list in `"fn_block"`
     /// - `"expr_list"`  
