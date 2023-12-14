@@ -1,5 +1,2 @@
-helloworld = ["Hello", "World", "!!!", "\n"];
-你好世界 = "
-你好\t世界！
-";
-print(a + b);
+a = 100;
+你好 = 200;
