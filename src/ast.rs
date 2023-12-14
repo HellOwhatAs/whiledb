@@ -1,4 +1,6 @@
 use std::collections::VecDeque;
+use std::rc::Rc;
+
 
 /// Command Node in AST
 #[derive(Debug)]
@@ -8,12 +10,12 @@ pub enum Cmd {
     ///   ```
     ///   "expr" = "expr"
     ///   ```
-    Asgn(Box<Expr>, Box<Expr>),
+    Asgn(Rc<Expr>, Rc<Expr>),
     /// - `"cmd"`  
     ///   represent a sequence of "cmd_simple" or "cmd_block"
     /// - `"fn_list"`  
     ///   represent a sequence of "fn_block" defined in "class_block"
-    Seq(VecDeque<Cmd>),
+    Seq(VecDeque<Rc<Cmd>>),
     /// - `"cmd_block"`  
     ///   represent the if block
     ///   ```
@@ -24,7 +26,7 @@ pub enum Cmd {
     ///       "cmd"
     ///   } */
     ///   ```
-    If(Box<Expr>, Box<Cmd>, Box<Cmd>),
+    If(Rc<Expr>, Rc<Cmd>, Rc<Cmd>),
     /// - `"cmd_block"`  
     ///   represent the while block
     ///   ```
@@ -32,14 +34,14 @@ pub enum Cmd {
     ///       "cmd"
     ///   }
     ///   ```
-    While(Box<Expr>, Box<Cmd>),
+    While(Rc<Expr>, Rc<Cmd>),
     /// - `"cmd_simple"`  
     ///   represent the command that is just a value
     ///   ```
     ///   "expr"
     ///   ```
     /// - Wrap type `Expr` to type `Cmd`
-    Expr(Box<Expr>),
+    Expr(Rc<Expr>),
     /// - `"cmd_simple"`  
     ///   ```
     ///   continue
@@ -57,7 +59,7 @@ pub enum Cmd {
     ///       "cmd"
     ///   }
     ///   ```
-    Func(String, Box<Expr>, Box<Cmd>),
+    Func(String, Rc<Expr>, Rc<Cmd>),
     /// - `"class_block"`  
     ///   defination of a class
     ///   ```
@@ -65,12 +67,12 @@ pub enum Cmd {
     ///       "fn_list"
     ///   }
     ///   ```
-    Class(String, Box<Cmd>),
+    Class(String, Rc<Cmd>),
     /// - `"cmd_simple"`  
     ///   ```
     ///   return "expr"
     ///   ```
-    Return(Box<Expr>),
+    Return(Rc<Expr>),
     /// - No operation
     Nop
 }
@@ -102,7 +104,7 @@ pub enum Expr {
     ///     ```
     ///     "expr"["expr", "expr"/*, */]
     ///     ```
-    Tuple(VecDeque<Expr>),
+    Tuple(VecDeque<Rc<Expr>>),
     /// - `"ident"`  
     ///   variable
     Var(String),
@@ -111,31 +113,31 @@ pub enum Expr {
     ///   ```
     ///   "expr" op "expr"
     ///   ```
-    BinOp(BinOp, Box<Expr>, Box<Expr>),
+    BinOp(BinOp, Rc<Expr>, Rc<Expr>),
     /// - `"expr"`  
     ///   unary operation
     ///   ```
     ///   op "expr"
     ///   ```
-    UnOp(UnOp, Box<Expr>),
+    UnOp(UnOp, Rc<Expr>),
     /// - `"expr"`  
     ///   call a function
     ///   ```
     ///   "expr"("expr", "expr"/*, */)
     ///   ```
-    Call(Box<Expr>, Box<Expr>),
+    Call(Rc<Expr>, Rc<Expr>),
     /// - `"expr"`  
     ///   get item from `"expr"`
     ///   ```
     ///   "expr"["expr", "expr"/*, */]
     ///   ```
-    GetItem(Box<Expr>, Box<Expr>),
+    GetItem(Rc<Expr>, Rc<Expr>),
     /// - `"expr"`  
     ///   get attribute
     ///   ```
     ///   "expr"."ident"
     ///   ```
-    GetAttr(Box<Expr>, String),
+    GetAttr(Rc<Expr>, String),
 }
 
 /// Binary Operators

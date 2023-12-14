@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::rc::Rc;
 use santiago::grammar::Associativity;
 use santiago::grammar::Grammar;
 use crate::ast::*;
@@ -12,7 +13,7 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             match right {
                 Cmd::Seq(mut right) => {
-                    right.push_front(left);
+                    right.push_front(Rc::new(left));
                     Cmd::Seq(right)
                 },
                 _ => unreachable!()
@@ -25,7 +26,7 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             match right {
                 Cmd::Seq(mut right) => {
-                    right.push_front(left);
+                    right.push_front(Rc::new(left));
                     Cmd::Seq(right)
                 },
                 _ => unreachable!()
@@ -65,7 +66,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop(); rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::If(e, Box::new(if_branch), Box::new(else_branch));
+                return Cmd::If(e, Rc::new(if_branch), Rc::new(else_branch));
             }
             unreachable!();
         };
@@ -78,7 +79,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::If(e, Box::new(if_branch), Box::new(else_branch));
+                return Cmd::If(e, Rc::new(if_branch), Rc::new(else_branch));
             }
             unreachable!();
         };
@@ -89,7 +90,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop(); rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::If(e, Box::new(if_branch), Box::new(Cmd::Nop));
+                return Cmd::If(e, Rc::new(if_branch), Rc::new(Cmd::Nop));
             }
             unreachable!();
         };
@@ -100,7 +101,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::If(e, Box::new(if_branch), Box::new(Cmd::Nop));
+                return Cmd::If(e, Rc::new(if_branch), Rc::new(Cmd::Nop));
             }
             unreachable!();
         };
@@ -111,7 +112,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop(); rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::While(e, Box::new(body));
+                return Cmd::While(e, Rc::new(body));
             }
             unreachable!();
         };
@@ -122,7 +123,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let cond: Cmd = rules.pop().unwrap();
             if let Cmd::Expr(e) = cond {
-                return Cmd::While(e, Box::new(body));
+                return Cmd::While(e, Rc::new(body));
             }
             unreachable!();
         };
@@ -141,11 +142,11 @@ pub fn grammar() -> Grammar<Cmd> {
                     Cmd::Expr(e) => e,
                     _ => unreachable!()
                 };
-                let func_name = match *func_name {
+                let func_name = match func_name.as_ref() {
                     Expr::Var(func_name) => func_name,
                     _ => unreachable!()
                 };
-                Cmd::Func(func_name, args, Box::new(body))
+                Cmd::Func(func_name.clone(), args, Rc::new(body))
             }
             else {
                 unreachable!()
@@ -160,8 +161,8 @@ pub fn grammar() -> Grammar<Cmd> {
             let class_name: Cmd = rules.pop().unwrap();
             match class_name {
                 Cmd::Expr(class_name) => {
-                    match *class_name {
-                        Expr::Var(class_name) => Cmd::Class(class_name, Box::new(methods)),
+                    match class_name.as_ref() {
+                        Expr::Var(class_name) => Cmd::Class(class_name.clone(), Rc::new(methods)),
                         _ => unreachable!()
                     }
                 },
@@ -175,19 +176,19 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             match right {
                 Cmd::Seq(mut right) => {
-                    right.push_front(left);
+                    right.push_front(Rc::new(left));
                     Cmd::Seq(right)
                 },
                 _ => unreachable!()
             }
         };
 
-        "ident_list" => empty => |_| Cmd::Expr(Box::new(Expr::Tuple(VecDeque::new())));
+        "ident_list" => empty => |_| Cmd::Expr(Rc::new(Expr::Tuple(VecDeque::new())));
         "ident_list" => rules "ident" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let expr: Cmd = rules.pop().unwrap();
             match expr {
-                Cmd::Expr(expr) => Cmd::Expr(Box::new(Expr::Tuple(VecDeque::from_iter([*expr])))),
+                Cmd::Expr(expr) => Cmd::Expr(Rc::new(Expr::Tuple(VecDeque::from_iter([expr])))),
                 _ => unreachable!()
             }
         };
@@ -198,9 +199,9 @@ pub fn grammar() -> Grammar<Cmd> {
             let left = rules.pop().unwrap();
             match right {
                 Cmd::Expr(ident_right) => {
-                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, *ident_right) {
-                        expr_right.push_front(*expr_left);
-                        Cmd::Expr(Box::new(Expr::Tuple(expr_right)))
+                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, Rc::try_unwrap(ident_right).unwrap()) {
+                        expr_right.push_front(expr_left);
+                        Cmd::Expr(Rc::new(Expr::Tuple(expr_right)))
                     }
                     else { unreachable!() }
                 }
@@ -208,12 +209,12 @@ pub fn grammar() -> Grammar<Cmd> {
             }
         };
         
-        "expr_list" => empty => |_| Cmd::Expr(Box::new(Expr::Tuple(VecDeque::new())));
+        "expr_list" => empty => |_| Cmd::Expr(Rc::new(Expr::Tuple(VecDeque::new())));
         "expr_list" => rules "expr" => |rules| {
             let mut rules: Vec<Cmd> = rules;
             let expr: Cmd = rules.pop().unwrap();
             match expr {
-                Cmd::Expr(expr) => Cmd::Expr(Box::new(Expr::Tuple(VecDeque::from_iter([*expr])))),
+                Cmd::Expr(expr) => Cmd::Expr(Rc::new(Expr::Tuple(VecDeque::from_iter([expr])))),
                 _ => unreachable!()
             }
         };
@@ -224,9 +225,9 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             match right {
                 Cmd::Expr(expr_right) => {
-                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, *expr_right) {
-                        expr_right.push_front(*expr_left);
-                        Cmd::Expr(Box::new(Expr::Tuple(expr_right)))
+                    if let (Cmd::Expr(expr_left), Expr::Tuple(mut expr_right)) = (left, Rc::try_unwrap(expr_right).unwrap()) {
+                        expr_right.push_front(expr_left);
+                        Cmd::Expr(Rc::new(Expr::Tuple(expr_right)))
                     }
                     else { unreachable!() }
                 },
@@ -240,7 +241,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let func: Cmd = rules.pop().unwrap();
             match (func, expr_list) {
-                (Cmd::Expr(func), Cmd::Expr(expr_list)) => Cmd::Expr(Box::new(Expr::Call(func, expr_list))),
+                (Cmd::Expr(func), Cmd::Expr(expr_list)) => Cmd::Expr(Rc::new(Expr::Call(func, expr_list))),
                 _ => unreachable!()
             }
         };
@@ -251,7 +252,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let expr: Cmd = rules.pop().unwrap();
             match (expr, expr_list) {
-                (Cmd::Expr(expr), Cmd::Expr(expr_list)) => Cmd::Expr(Box::new(Expr::GetItem(expr, expr_list))),
+                (Cmd::Expr(expr), Cmd::Expr(expr_list)) => Cmd::Expr(Rc::new(Expr::GetItem(expr, expr_list))),
                 _ => unreachable!()
             }
         };
@@ -270,7 +271,7 @@ pub fn grammar() -> Grammar<Cmd> {
         };
         "expr" => rules "negate" "expr" => |mut rules| {
             if let Cmd::Expr(e) = rules.pop().unwrap() {
-                return Cmd::Expr(Box::new(Expr::UnOp(UnOp::Negate, e)));
+                return Cmd::Expr(Rc::new(Expr::UnOp(UnOp::Negate, e)));
             }
             unreachable!();
         };
@@ -280,7 +281,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Plus, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Plus, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -292,7 +293,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Minus, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Minus, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -304,7 +305,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Mul, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Mul, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -316,7 +317,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Div, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Div, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -328,7 +329,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Mod, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Mod, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -340,7 +341,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Lt, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Lt, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -352,7 +353,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Gt, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Gt, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -364,7 +365,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Le, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Le, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -376,7 +377,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Ge, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Ge, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -388,7 +389,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Eq, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Eq, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -400,7 +401,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Ne, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Ne, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -412,7 +413,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::And, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::And, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -424,7 +425,7 @@ pub fn grammar() -> Grammar<Cmd> {
             rules.pop();
             let left: Cmd = rules.pop().unwrap();
             if let (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) = (left, right) {
-                return Cmd::Expr(Box::new(Expr::BinOp(BinOp::Or, expr_left, expr_right)));
+                return Cmd::Expr(Rc::new(Expr::BinOp(BinOp::Or, expr_left, expr_right)));
             }
             else {
                 unreachable!();
@@ -437,9 +438,9 @@ pub fn grammar() -> Grammar<Cmd> {
             let left: Cmd = rules.pop().unwrap();
             match (left, right) {
                 (Cmd::Expr(expr_left), Cmd::Expr(expr_right)) => {
-                    match *expr_right {
+                    match expr_right.as_ref() {
                         Expr::Var(attr) => {
-                            Cmd::Expr(Box::new(Expr::GetAttr(expr_left, attr)))
+                            Cmd::Expr(Rc::new(Expr::GetAttr(expr_left, attr.clone())))
                         },
                         _ => unreachable!()
                     }
@@ -449,26 +450,26 @@ pub fn grammar() -> Grammar<Cmd> {
         };
         "expr" => rules "not" "expr" => |mut rules| {
             if let Cmd::Expr(e) = rules.pop().unwrap() {
-                return Cmd::Expr(Box::new(Expr::UnOp(UnOp::Not, e)));
+                return Cmd::Expr(Rc::new(Expr::UnOp(UnOp::Not, e)));
             }
             unreachable!();
         };
         "expr" => rules "deref" "expr" => |mut rules| {
             if let Cmd::Expr(e) = rules.pop().unwrap() {
-                return Cmd::Expr(Box::new(Expr::UnOp(UnOp::Deref, e)));
+                return Cmd::Expr(Rc::new(Expr::UnOp(UnOp::Deref, e)));
             }
             unreachable!();
         };
         "expr" => rules "ident";
 
         "int" => lexemes "INT" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::ConstInt(lexemes[0].raw.clone())))
+            Cmd::Expr(Rc::new(Expr::ConstInt(lexemes[0].raw.clone())))
         };
         "float" => lexemes "FLOAT" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::ConstFloat(lexemes[0].raw.clone())))
+            Cmd::Expr(Rc::new(Expr::ConstFloat(lexemes[0].raw.clone())))
         };
         "string" => lexemes "STRING" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::ConstString(lexemes[0].raw.clone())))
+            Cmd::Expr(Rc::new(Expr::ConstString(lexemes[0].raw.clone())))
         };
         "if" => lexemes "IF" => |_| Cmd::Nop;
         "then" => lexemes "THEN" => |_| Cmd::Nop;
@@ -482,7 +483,7 @@ pub fn grammar() -> Grammar<Cmd> {
         "return" => lexemes "RETURN" => |_| Cmd::Nop;
         "." => lexemes "DOT" => |_| Cmd::Nop;
         "ident" => lexemes "IDENT" => |lexemes| {
-            Cmd::Expr(Box::new(Expr::Var(lexemes[0].raw.to_string())))
+            Cmd::Expr(Rc::new(Expr::Var(lexemes[0].raw.to_string())))
         };
         ";" => lexemes "SEMICOL" => |_| Cmd::Nop;
         "," => lexemes "COMMA" => |_| Cmd::Nop;
