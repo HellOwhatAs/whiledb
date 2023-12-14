@@ -8,7 +8,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
 - [x] make any expression callable (currently only `ident` callable)
 - [x] add class and method
 - [x] add `[` `]` to represent array and getitem
-- [ ] add string
+- [x] add string
 - [ ] add interpreter or compiler
 
 
