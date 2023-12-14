@@ -171,6 +171,25 @@ pub enum BinOp {
     Or,
 }
 
+impl std::fmt::Display for BinOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            BinOp::Plus => "+",
+            BinOp::Minus => "-",
+            BinOp::Mul => "*",
+            BinOp::Div => "/",
+            BinOp::Mod => "%",
+            BinOp::Lt => "<",
+            BinOp::Gt => ">",
+            BinOp::Le => "<=",
+            BinOp::Ge => ">=",
+            BinOp::Eq => "==",
+            BinOp::Ne => "!=",
+            BinOp::And => "&&",
+            BinOp::Or => "||",
+        })
+    }
+}
 
 /// Unary Operators
 #[derive(Debug)]
@@ -181,4 +200,14 @@ pub enum UnOp {
     Not, 
     /// operator `*`
     Deref
+}
+
+impl std::fmt::Display for UnOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            UnOp::Negate => "-",
+            UnOp::Not => "!",
+            UnOp::Deref => "*",
+        })
+    }
 }
