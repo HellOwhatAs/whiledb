@@ -100,7 +100,17 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Any), String> {
         Expr::ConstFloat(_) => todo!(),
         Expr::ConstString(_) => todo!(),
         Expr::Tuple(_) => todo!(),
-        Expr::Var(_) => todo!(),
+        Expr::Var(s) => {
+            match &*state.clone().borrow() {
+                WdAny::Obj(o) => {
+                    match o.attrs.get(s) {
+                        Some(e) => Ok((e.clone(), state)),
+                        None => Err(format!("Using undefined variable `{}`", s)),
+                    }
+                },
+                _ => unreachable!(),
+            }
+        },
         Expr::BinOp(_, _, _) => todo!(),
         Expr::UnOp(_, _) => todo!(),
         Expr::Call(_, _) => todo!(),

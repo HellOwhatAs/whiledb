@@ -31,9 +31,9 @@ pub fn build_int(raw: &str, state: Any) -> (Any, Any) {
 pub fn int_add(mut args: VecDeque<Any>, state: Any) -> (Any, Any) {
     let left = args.pop_back().unwrap();
     let right = args.pop_back().unwrap();
-    match (&mut *left.clone().borrow_mut(), &mut *right.clone().borrow_mut()) {
+    match (&*left.clone().borrow(), &*right.clone().borrow()) {
         (WdAny::Obj(o1), WdAny::Obj(o2)) => {
-            let res = match (&mut o1.buildin, &mut o2.buildin) {
+            let res = match (&o1.buildin, &o2.buildin) {
                 (BuildIn::Int(i1), BuildIn::Int(i2)) =>
                     BigInt::checked_add(i1, i2).unwrap(),
                 _ => unreachable!()
