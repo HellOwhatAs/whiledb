@@ -15,6 +15,19 @@ pub fn get_attr(obj: Any, key: &str) -> Option<Any> {
     }
 }
 
+/// just get the attr with no recursive
+pub fn get_self_attr(obj: Any, key: &str) -> Option<Any> {
+    match &*obj.borrow() {
+        WdAny::Obj(obj) => {
+            match obj.attrs.get(key) {
+                Some(v) => Some(v.clone()),
+                None => None
+            }
+        },
+        _ => None,
+    }
+}
+
 /// get var from local (if not exist nonlocal)
 pub fn get_var(name: &str, state: Any) -> Result<Any, String> {
     match &*state.borrow() {
@@ -64,9 +77,12 @@ pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<(), String> {
 pub fn call(obj: Any, args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
     match &*obj.clone().borrow() {
         WdAny::Obj(_) => {
-            match get_attr(obj.clone(), "__call__") {
+            match get_self_attr(obj.clone(), "__init__") {
                 Some(f) => call(f, args, state),
-                None => Err(format!("Cannot Call {:?}", obj)),
+                None => match get_attr(obj.clone(), "__call__") {
+                    Some(f) => call(f, args, state),
+                    None => Err(format!("cannot call {:?}", obj)),
+                },
             }
         },
         WdAny::Func(f) => {
