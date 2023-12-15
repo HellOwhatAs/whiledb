@@ -2,7 +2,7 @@ mod lexer;
 pub mod ast;
 mod grammar;
 mod src_error;
-mod interpreter;
+pub mod interpreter;
 
 use ast::Cmd;
 pub use src_error::SrcError;
@@ -42,7 +42,6 @@ pub fn parse(input: &str) -> Result<Cmd, SrcError<Cmd>> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use std::rc::Rc;
 
     use crate::{parse, interpreter::{self, init_state}};
@@ -65,7 +64,8 @@ mod tests {
         match parse(include_str!("../tests/test2.wd")) {
             Ok(res) => {
                 println!("{:?}", res);
-                let state = interpreter::exec(Rc::new(res), init_state()).unwrap();
+                let state = init_state();
+                interpreter::exec(Rc::new(res), state.clone()).unwrap();
                 println!("{:#?}", state);
             },
             Err(err) => panic!("{}", err)

@@ -174,19 +174,19 @@ pub enum BinOp {
 impl std::fmt::Display for BinOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            BinOp::Plus => "+",
-            BinOp::Minus => "-",
-            BinOp::Mul => "*",
-            BinOp::Div => "/",
-            BinOp::Mod => "%",
-            BinOp::Lt => "<",
-            BinOp::Gt => ">",
-            BinOp::Le => "<=",
-            BinOp::Ge => ">=",
-            BinOp::Eq => "==",
-            BinOp::Ne => "!=",
-            BinOp::And => "&&",
-            BinOp::Or => "||",
+            BinOp::Plus => "add",
+            BinOp::Minus => "sub",
+            BinOp::Mul => "mul",
+            BinOp::Div => "div",
+            BinOp::Mod => "mod",
+            BinOp::Lt => "lt",
+            BinOp::Gt => "gt",
+            BinOp::Le => "le",
+            BinOp::Ge => "ge",
+            BinOp::Eq => "eq",
+            BinOp::Ne => "ne",
+            BinOp::And => "and",
+            BinOp::Or => "or",
         })
     }
 }
@@ -205,9 +205,9 @@ pub enum UnOp {
 impl std::fmt::Display for UnOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
-            UnOp::Negate => "-",
-            UnOp::Not => "!",
-            UnOp::Deref => "*",
+            UnOp::Negate => "negate",
+            UnOp::Not => "not",
+            UnOp::Deref => "deref",
         })
     }
 }

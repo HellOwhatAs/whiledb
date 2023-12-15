@@ -1,34 +1,40 @@
 use num_bigint::BigInt;
 use maplit;
 use crate::interpreter::*;
-use crate::ast::*;
 
-pub fn build_int_type() -> Any {
+/// add the type `int` to buildin-state and return the state
+pub fn buildin_int(state: Any) -> Any {
     let attrs = maplit::hashmap! {
         "__add__".to_string() => Rc::new(RefCell::new(
             WdAny::Func(Function::BuildInFunction(BuildInFunction(int_add)))
         )),
+        "__type__".to_string() => utils::state2typeobj("type", state.clone())
     };
-    todo!()
+    match &mut *state.borrow_mut() {
+        WdAny::Obj(o) => {
+            o.attrs.insert(
+                "int".to_string(),
+                Rc::new(RefCell::new(WdAny::Obj(Object{
+                    buildin: BuildIn::Not,
+                    attrs: attrs
+                })))
+            );
+        },
+        _ => unreachable!(),
+    }
+    state
 }
 
-pub fn state2typeobj(state: Any) -> Any {
-    todo!()
+pub fn build_int(raw: &str, state: Any) -> Any {
+    Rc::new(RefCell::new(WdAny::Obj(Object {
+        buildin: BuildIn::Int(raw.parse::<BigInt>().unwrap()),
+        attrs: maplit::hashmap! {
+            "__type__".to_string() => utils::state2typeobj("int", state.clone())
+        }
+    })))
 }
 
-pub fn build_int(raw: &str, state: Any) -> (Any, Any) {
-    (
-        Rc::new(RefCell::new(WdAny::Obj(Object {
-            buildin: BuildIn::Int(raw.parse::<BigInt>().unwrap()),
-            attrs: maplit::hashmap! {
-                "__type__".to_string() => state2typeobj(state.clone())
-            }
-        }))),
-        state
-    )
-}
-
-pub fn int_add(mut args: VecDeque<Any>, state: Any) -> (Any, Any) {
+fn int_add(mut args: VecDeque<Any>, state: Any) -> Result<Any, String> {
     let left = args.pop_back().unwrap();
     let right = args.pop_back().unwrap();
     match (&*left.clone().borrow(), &*right.clone().borrow()) {
@@ -38,15 +44,12 @@ pub fn int_add(mut args: VecDeque<Any>, state: Any) -> (Any, Any) {
                     BigInt::checked_add(i1, i2).unwrap(),
                 _ => unreachable!()
             };
-            (
-                Rc::new(RefCell::new(WdAny::Obj(Object{
-                    buildin: BuildIn::Int(res),
-                    attrs: maplit::hashmap! {
-                        "__type__".to_string() => state2typeobj(state.clone())
-                    }
-                }))),
-                state
-            )
+            Ok(Rc::new(RefCell::new(WdAny::Obj(Object{
+                buildin: BuildIn::Int(res),
+                attrs: maplit::hashmap! {
+                    "__type__".to_string() => utils::state2typeobj("int", state.clone())
+                }
+            }))))
         },
         _ => unreachable!()
     }
