@@ -65,7 +65,7 @@ mod tests {
         match parse(include_str!("../tests/test2.wd")) {
             Ok(res) => {
                 println!("{}", format!("{:?}", res).green());
-                let state = init_state();
+                let state = init_state().unwrap();
                 interpreter::exec(Rc::new(res), state.clone()).unwrap();
                 println!("{}", format!("{:?}", state).green());
             },

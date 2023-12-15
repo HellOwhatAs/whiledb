@@ -1,7 +1,7 @@
 use crate::interpreter::*;
 use maplit;
 
-pub fn buildin_bool(state: Any) -> Result<(), String> {
+pub fn buildin_bool(state: Any) -> Result<()> {
     let attrs = maplit::hashmap! {
         "__and__".to_string() => Rc::new(RefCell::new(
             WdAny::Func(Function::BuildInFunction(BuildInFunction(bool_and)))
@@ -21,7 +21,7 @@ pub fn buildin_bool(state: Any) -> Result<(), String> {
         "__init__".to_string() => Rc::new(RefCell::new(
             WdAny::Func(Function::BuildInFunction(BuildInFunction(bool_init)))
         )),
-        "__type__".to_string() => utils::get_buildin_var("type", state.clone()).unwrap()
+        "__type__".to_string() => utils::get_buildin_var("type", state.clone())?
     };
     utils::set_attr(
         state.clone(),
@@ -66,7 +66,7 @@ fn any2bool(x: Any) -> Option<bool> {
     }
 }
 
-fn bool_init(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_init(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     match args.len() {
         0 => utils::get_buildin_var("false", state),
         1 => {
@@ -75,59 +75,59 @@ fn bool_init(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
                 Some(_) => Ok(arg),
                 None => match utils::get_attr(arg.clone(), "__bool__") {
                     Some(tf) => utils::call(tf, args, state),
-                    None => Err(format!("cannot convert {:?} to bool", arg)),
+                    None => bail!("cannot convert {:?} to bool", arg)
                 },
             }
         },
-        _ => Err("bool accepts only one argument".to_string())
+        _ => bail!("bool accepts only one argument")
     }
 }
 
-fn bool_and(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_and(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     let (_left, _right) = (args[0].clone(), args[1].clone());
     match (any2bool(_left.clone()), any2bool(_right.clone())) {
         (Some(b1), Some(b2)) => match b1 && b2 {
             true => utils::get_buildin_var("true", state.clone()),
             false => utils::get_buildin_var("false", state.clone()),
         },
-        _ => Err(format!("Cannot compute and value of '{:?}' and '{:?}'", _left, _right))
+        _ => bail!("Cannot compute and value of '{:?}' and '{:?}'", _left, _right)
     }
 }
 
-fn bool_or(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_or(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     let (_left, _right) = (args[0].clone(), args[1].clone());
     match (any2bool(_left.clone()), any2bool(_right.clone())) {
         (Some(b1), Some(b2)) => match b1 || b2 {
             true => utils::get_buildin_var("true", state.clone()),
             false => utils::get_buildin_var("false", state.clone()),
         },
-        _ => Err(format!("Cannot compute or value of '{:?}' and '{:?}'", _left, _right))
+        _ => bail!("Cannot compute or value of '{:?}' and '{:?}'", _left, _right)
     }
 }
 
-fn bool_eq(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_eq(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     let (_left, _right) = (args[0].clone(), args[1].clone());
     match (any2bool(_left.clone()), any2bool(_right.clone())) {
         (Some(b1), Some(b2)) => match b1 == b2 {
             true => utils::get_buildin_var("true", state.clone()),
             false => utils::get_buildin_var("false", state.clone()),
         },
-        _ => Err(format!("Cannot compare '{:?}' and '{:?}'", _left, _right))
+        _ => bail!("Cannot compare '{:?}' and '{:?}'", _left, _right)
     }
 }
 
-fn bool_ne(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_ne(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     let (_left, _right) = (args[0].clone(), args[1].clone());
     match (any2bool(_left.clone()), any2bool(_right.clone())) {
         (Some(b1), Some(b2)) => match b1 != b2 {
             true => utils::get_buildin_var("true", state.clone()),
             false => utils::get_buildin_var("false", state.clone()),
         },
-        _ => Err(format!("Cannot compare '{:?}' and '{:?}'", _left, _right))
+        _ => bail!("Cannot compare '{:?}' and '{:?}'", _left, _right)
     }
 }
 
-fn bool_not(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn bool_not(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     let _arg = args[0].clone();
     match any2bool(_arg) {
         Some(b) => match b {

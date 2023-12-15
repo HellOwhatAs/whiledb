@@ -1,6 +1,6 @@
 use crate::interpreter::*;
 
-pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(), String> {
+pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
     match ast.as_ref() {
         Cmd::Asgn(e1, e2) => {
             match e1.as_ref() {
@@ -12,7 +12,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(), String> {
                     let v1 = eval(e1.clone(), state.clone())?;
                     let v2 = eval(e2.clone(), state)?;
                     if Rc::strong_count(&v1) == 1 {
-                        return Err(format!("Cannot assign to {:?}", e1));
+                        bail!("Cannot assign to {:?}", e1)
                     }
                     let _ = std::mem::replace(&mut v1.borrow_mut(), v2.borrow_mut());
                     Ok(())
@@ -40,7 +40,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(), String> {
     }
 }
 
-pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any, String> {
+pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any> {
     match expr.as_ref() {
         Expr::ConstInt(s) => Ok(obj_int::build_int(s, state.clone())),
         Expr::ConstFloat(_) => todo!(),
@@ -61,14 +61,14 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any, String> {
             match (utils::get_attr(v1.clone(), &format!("__{}__", op)), utils::get_attr(v2.clone(), &format!("__r{}__", op))) {
                 (Some(f), _) => utils::call(f, &VecDeque::from([v1.clone(), v2.clone()]), state),
                 (None, Some(rf)) => utils::call(rf, &VecDeque::from([v2.clone(), v1.clone()]), state),
-                _ => Err(format!("Cannot '{}' between '{:?}' and '{:?}'", op, v1, v2))
+                _ => bail!("Cannot '{}' between '{:?}' and '{:?}'", op, v1, v2)
             }
         },
         Expr::UnOp(op, e) => {
             let v = eval(e.clone(), state.clone())?;
             match utils::get_attr(v.clone(), &format!("__{}__", op)) {
                 Some(f) => utils::call(f, &VecDeque::from([v.clone()]), state),
-                None => Err(format!("Cannot '{}' '{:?}'", op, v)),
+                None => bail!("Cannot '{}' '{:?}'", op, v)
             }
         },
         Expr::Call(e1, e2) => {

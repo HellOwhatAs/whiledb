@@ -1,7 +1,7 @@
 use crate::interpreter::*;
 
 
-pub fn init_state() -> Any {
+pub fn init_state() -> Result<Any> {
     let initial_attrs = maplit::hashmap! {
         "None".to_string() => Rc::new(RefCell::new(WdAny::Obj(Object{
             buildin: BuildIn::Not,
@@ -13,17 +13,17 @@ pub fn init_state() -> Any {
         buildin: BuildIn::Not,
         attrs: initial_attrs
     })));
-    obj_type::buildin_type(state.clone()).unwrap();
-    obj_bool::buildin_bool(state.clone()).unwrap();
-    obj_int::buildin_int(state.clone()).unwrap();
-    state
+    obj_type::buildin_type(state.clone())?;
+    obj_bool::buildin_bool(state.clone())?;
+    obj_int::buildin_int(state.clone())?;
+    Ok(state)
 }
 
 
-fn buildin_print(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+fn buildin_print(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     for arg in args.iter() {
         print!("{:?} ", arg.clone());
     }
     println!();
-    Ok(utils::get_buildin_var("None", state)?)
+    utils::get_buildin_var("None", state)
 }

@@ -1,7 +1,7 @@
 use crate::interpreter::*;
 
 /// add the type `type` to buildin-state and return the state
-pub fn buildin_type(state: Any) -> Result<(), String> {
+pub fn buildin_type(state: Any) -> Result<()> {
     let attrs = maplit::hashmap! {
         "__name__".to_string() => Rc::new(RefCell::new(WdAny::Obj(Object{
             buildin: BuildIn::String("type".to_string()),

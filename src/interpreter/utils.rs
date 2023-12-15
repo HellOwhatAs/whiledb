@@ -29,14 +29,14 @@ pub fn get_self_attr(obj: Any, key: &str) -> Option<Any> {
 }
 
 /// get var from local (if not exist nonlocal)
-pub fn get_var(name: &str, state: Any) -> Result<Any, String> {
+pub fn get_var(name: &str, state: Any) -> Result<Any> {
     match &*state.borrow() {
         WdAny::Obj(obj) => {
             match obj.attrs.get(name) {
                 Some(v) => Ok(v.clone()),
                 None => match obj.attrs.get("..") {
                     Some(nonlocal) => get_var(name, nonlocal.clone()),
-                    None => Err(format!("Undefined variable `{}`", name))
+                    None => bail!("Undefined variable `{}`", name)
                 }
             }
         },
@@ -45,14 +45,14 @@ pub fn get_var(name: &str, state: Any) -> Result<Any, String> {
 }
 
 /// get var from the root state
-pub fn get_buildin_var(name: &str, state: Any) -> Result<Any, String> {
+pub fn get_buildin_var(name: &str, state: Any) -> Result<Any> {
     match &*state.borrow() {
         WdAny::Obj(obj) => {
             match obj.attrs.get("..") {
                 Some(nonlocal) => get_buildin_var(name, nonlocal.clone()),
                 None => match obj.attrs.get(name) {
                     Some(res) => Ok(res.clone()),
-                    None => Err(format!("Undefined buildin-variable `{}`", name))
+                    None => bail!("Undefined buildin-variable `{}`", name)
                 }
             }
         },
@@ -61,27 +61,27 @@ pub fn get_buildin_var(name: &str, state: Any) -> Result<Any, String> {
 }
 
 /// set attr of a object
-pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<(), String> {
+pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<()> {
     match &mut *obj.borrow_mut() {
         WdAny::Obj(obj) => {
             obj.attrs.insert(key.to_string(), val.clone());
             Ok(())
         },
-        _ => Err("Cannot set attr a function".to_string())
+        _ => bail!("Cannot set attr a function")
     }
 }
 
 /// call a `Any` function
 /// 
 /// either function or a object with `__call__` attr
-pub fn call(obj: Any, args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+pub fn call(obj: Any, args: &VecDeque<Any>, state: Any) -> Result<Any> {
     match &*obj.clone().borrow() {
         WdAny::Obj(_) => {
             match get_self_attr(obj.clone(), "__init__") {
                 Some(f) => call(f, args, state),
                 None => match get_attr(obj.clone(), "__call__") {
                     Some(f) => call(f, args, state),
-                    None => Err(format!("cannot call {:?}", obj)),
+                    None => bail!("cannot call {:?}", obj)
                 },
             }
         },
