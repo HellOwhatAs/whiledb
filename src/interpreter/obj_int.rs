@@ -1,4 +1,4 @@
-use num::BigInt;
+use num::{BigInt, Zero};
 use maplit;
 use crate::interpreter::*;
 
@@ -19,6 +19,33 @@ pub fn buildin_int(state: Any) -> Result<(), String> {
         )),
         "__mod__".to_string() => Rc::new(RefCell::new(
             WdAny::Func(Function::BuildInFunction(BuildInFunction(int_mod)))
+        )),
+        "__lt__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_lt)))
+        )),
+        "__gt__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_gt)))
+        )),
+        "__le__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_le)))
+        )),
+        "__ge__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_ge)))
+        )),
+        "__eq__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_eq)))
+        )),
+        "__ne__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_ne)))
+        )),
+        "__negate__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_negate)))
+        )),
+        "__bool__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_2bool)))
+        )),
+        "__init__".to_string() => Rc::new(RefCell::new(
+            WdAny::Func(Function::BuildInFunction(BuildInFunction(int_init)))
         )),
         "__type__".to_string() => utils::get_buildin_var("type", state.clone()).unwrap()
     };
@@ -130,5 +157,146 @@ fn int_mod(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
             None => Err(format!("Cannot mod {:?} and {:?}", left, right)),
         },
         _ => unreachable!(),
+    }
+}
+
+fn int_lt(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 < i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__rlt__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_gt(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 > i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__rgt__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_le(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 <= i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__rle__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_ge(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 >= i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__rge__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_eq(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 == i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__req__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_ne(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let (_left, _right) = (args[0].clone(), args[1].clone());
+    let (left, right) = (&*_left.borrow(), &*_right.borrow());
+    match (wdany2bigint(left), wdany2bigint(right)) {
+        (Some(i1), Some(i2)) => Ok(match i1 != i2 {
+            true => utils::get_buildin_var("true", state.clone())?,
+            false => utils::get_buildin_var("false", state.clone())?,
+        }),
+        (Some(_), None) => match utils::get_attr(_right.clone(), "__rne__") {
+            Some(rf) => utils::call(rf, &VecDeque::from([_right.clone(), _left.clone()]), state),
+            None => Err(format!("Cannot compare {:?} and {:?}", left, right)),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_negate(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let _arg = args[0].clone();
+    let arg = &*_arg.borrow();
+    match wdany2bigint(arg) {
+        Some(i) => Ok(bigint2intinstance(-i, state.clone())),
+        _ => unreachable!(),
+    }
+}
+
+fn int_2bool(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    let _arg = args[0].clone();
+    let arg = &*_arg.borrow();
+    match wdany2bigint(arg) {
+        Some(i) => match i.is_zero() {
+            true => utils::get_buildin_var("false", state),
+            false => utils::get_buildin_var("true", state),
+        },
+        _ => unreachable!(),
+    }
+}
+
+fn int_init(args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
+    match args.len() {
+        0 => Ok(bigint2intinstance(BigInt::from(0), state)),
+        1 => {
+            let _arg = args[0].clone();
+            let arg = &*_arg.borrow();
+            match arg {
+                WdAny::Obj(o) => {
+                    match o.buildin {
+                        BuildIn::Bool(b) => Ok(bigint2intinstance(BigInt::from(b), state)),
+                        BuildIn::Int(_) => Ok(args[0].clone()),
+                        _ => match utils::get_attr(args[0].clone(), "__int__") {
+                            Some(tf) => utils::call(tf, args, state),
+                            None => Err(format!("cannot convert {:?} to bool", arg)),
+                        }
+                    }
+                },
+                _ => Err("cannot convert function to int".to_string()),
+            }
+        },
+        _ => Err("int accepts only one argument".to_string())
     }
 }

@@ -61,10 +61,16 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any, String> {
             match (utils::get_attr(v1.clone(), &format!("__{}__", op)), utils::get_attr(v2.clone(), &format!("__r{}__", op))) {
                 (Some(f), _) => utils::call(f, &VecDeque::from([v1.clone(), v2.clone()]), state),
                 (None, Some(rf)) => utils::call(rf, &VecDeque::from([v2.clone(), v1.clone()]), state),
-                _ => Err(format!("Cannot {} between {:?} and {:?}", op, v1, v2))
+                _ => Err(format!("Cannot '{}' between '{:?}' and '{:?}'", op, v1, v2))
             }
         },
-        Expr::UnOp(_, _) => todo!(),
+        Expr::UnOp(op, e) => {
+            let v = eval(e.clone(), state.clone())?;
+            match utils::get_attr(v.clone(), &format!("__{}__", op)) {
+                Some(f) => utils::call(f, &VecDeque::from([v.clone()]), state),
+                None => Err(format!("Cannot '{}' '{:?}'", op, v)),
+            }
+        },
         Expr::Call(e1, e2) => {
             let (v1, v2) = (eval(e1.clone(), state.clone())?, eval(e2.clone(), state.clone())?);
             match &*v2.clone().borrow() {

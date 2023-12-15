@@ -4,16 +4,20 @@ use std::collections::{VecDeque, HashMap};
 use std::rc::Rc;
 use num::BigInt;
 use maplit;
-pub mod obj_int;
-pub mod obj_type;
 pub mod runner;
-pub mod states;
 pub mod utils;
+pub mod states;
+pub mod obj_type;
+pub mod obj_int;
+pub mod obj_bool;
+pub mod obj_string;
+pub mod obj_list;
 pub use runner::{eval, exec};
 pub use states::init_state;
 
 #[derive(Debug)]
 pub enum BuildIn {
+    Bool(bool),
     Int(BigInt),
     Float(f64),
     String(String),

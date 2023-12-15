@@ -67,7 +67,7 @@ mod tests {
                 println!("{}", format!("{:?}", res).green());
                 let state = init_state();
                 interpreter::exec(Rc::new(res), state.clone()).unwrap();
-                println!("{}", format!("{:#?}", state).green());
+                println!("{}", format!("{:?}", state).green());
             },
             Err(err) => panic!("{}", err)
         }

@@ -14,6 +14,7 @@ pub fn init_state() -> Any {
         attrs: initial_attrs
     })));
     obj_type::buildin_type(state.clone()).unwrap();
+    obj_bool::buildin_bool(state.clone()).unwrap();
     obj_int::buildin_int(state.clone()).unwrap();
     state
 }
