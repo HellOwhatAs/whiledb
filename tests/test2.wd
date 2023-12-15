@@ -3,4 +3,4 @@ b = 123;
 result = 1234 - b * 10;
 tmp = (result <= 4) && true;
 print(tmp);
-print(int(!tmp) != (int(tmp) == true));
+print(int(!tmp) != int(tmp) == true);
