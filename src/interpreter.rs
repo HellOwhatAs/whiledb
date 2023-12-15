@@ -34,7 +34,7 @@ pub struct DefinedFunction {
 }
 
 #[derive(Debug)]
-pub struct BuildInFunction(fn(VecDeque<Any>, Any) -> Result<Any, String>);
+pub struct BuildInFunction(fn(&VecDeque<Any>, Any) -> Result<Any, String>);
 
 #[derive(Debug)]
 pub enum Function {

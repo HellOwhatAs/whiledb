@@ -1,20 +1,8 @@
 use crate::interpreter::*;
 
-/// find type from any state
-pub fn state2typeobj(name: &str, state: Any) -> Any {
-    match &mut *state.clone().borrow_mut() {
-        WdAny::Obj(o) => {
-            if o.attrs.contains_key("..") {
-                state2typeobj(name, state)
-            }
-            else {
-                o.attrs.get(name).unwrap().clone()
-            }
-        },
-        _ => unreachable!()
-    }
-}
-
+/// first get attr from a object
+/// 
+/// if not exist, get attrs from the type object refed in `__type__` attr
 pub fn get_attr(obj: Any, key: &str) -> Option<Any> {
     match &*obj.borrow() {
         WdAny::Obj(obj) => {
@@ -27,6 +15,39 @@ pub fn get_attr(obj: Any, key: &str) -> Option<Any> {
     }
 }
 
+/// get var from local (if not exist nonlocal)
+pub fn get_var(name: &str, state: Any) -> Result<Any, String> {
+    match &*state.borrow() {
+        WdAny::Obj(obj) => {
+            match obj.attrs.get(name) {
+                Some(v) => Ok(v.clone()),
+                None => match obj.attrs.get("..") {
+                    Some(nonlocal) => get_var(name, nonlocal.clone()),
+                    None => Err(format!("Undefined variable `{}`", name))
+                }
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
+/// get var from the root state
+pub fn get_buildin_var(name: &str, state: Any) -> Result<Any, String> {
+    match &*state.borrow() {
+        WdAny::Obj(obj) => {
+            match obj.attrs.get("..") {
+                Some(nonlocal) => get_buildin_var(name, nonlocal.clone()),
+                None => match obj.attrs.get(name) {
+                    Some(res) => Ok(res.clone()),
+                    None => Err(format!("Undefined buildin-variable `{}`", name))
+                }
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
+/// set attr of a object
 pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<(), String> {
     match &mut *obj.borrow_mut() {
         WdAny::Obj(obj) => {
@@ -37,7 +58,10 @@ pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<(), String> {
     }
 }
 
-pub fn call(obj: Any, args: VecDeque<Any>, state: Any) -> Result<Any, String> {
+/// call a `Any` function
+/// 
+/// either function or a object with `__call__` attr
+pub fn call(obj: Any, args: &VecDeque<Any>, state: Any) -> Result<Any, String> {
     match &*obj.clone().borrow() {
         WdAny::Obj(_) => {
             match get_attr(obj.clone(), "__call__") {

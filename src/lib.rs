@@ -61,12 +61,13 @@ mod tests {
     }
     #[test]
     fn test2() {
+        use colored::Colorize;
         match parse(include_str!("../tests/test2.wd")) {
             Ok(res) => {
-                println!("{:?}", res);
+                println!("{}", format!("{:?}", res).green());
                 let state = init_state();
                 interpreter::exec(Rc::new(res), state.clone()).unwrap();
-                println!("{:#?}", state);
+                println!("{}", format!("{:#?}", state).green());
             },
             Err(err) => panic!("{}", err)
         }
