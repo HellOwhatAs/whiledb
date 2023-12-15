@@ -2,7 +2,7 @@ use crate::ast::*;
 use std::cell::RefCell;
 use std::collections::{VecDeque, HashMap};
 use std::rc::Rc;
-use num_bigint::BigInt;
+use num::BigInt;
 use maplit;
 pub mod obj_int;
 pub mod obj_type;
