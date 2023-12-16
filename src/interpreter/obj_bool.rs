@@ -54,7 +54,7 @@ pub fn buildin_bool(state: Any) -> Result<()> {
     Ok(())
 }
 
-fn any2bool(x: Any) -> Option<bool> {
+pub fn any2bool(x: Any) -> Option<bool> {
     match &*x.borrow() {
         WdAny::Obj(o) => {
             match o.buildin {
@@ -66,7 +66,7 @@ fn any2bool(x: Any) -> Option<bool> {
     }
 }
 
-fn bool_init(args: &VecDeque<Any>, state: Any) -> Result<Any> {
+pub fn bool_init(args: &VecDeque<Any>, state: Any) -> Result<Any> {
     match args.len() {
         0 => utils::get_buildin_var("false", state),
         1 => {

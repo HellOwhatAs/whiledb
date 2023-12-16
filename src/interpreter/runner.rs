@@ -25,7 +25,15 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
             }
             Ok(())
         },
-        Cmd::If(_, _, _) => todo!(),
+        Cmd::If(e, c1, c2) => {
+            let v = eval(e.clone(), state.clone())?;
+            match obj_bool::any2bool(obj_bool::bool_init(&VecDeque::from([v.clone()]), state.clone())?) {
+                Some(b) => {
+                    if b { exec(c1.clone(), state) } else { exec(c2.clone(), state) }
+                },
+                _ => bail!("if condition {:?} cannot convert to bools", v),
+            }
+        },
         Cmd::While(_, _) => todo!(),
         Cmd::Expr(e) => {
             eval(e.clone(), state)?;
