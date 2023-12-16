@@ -20,7 +20,6 @@ use panic as bail;
 pub use runner::{eval, exec};
 pub use states::init_state;
 
-#[derive(Debug)]
 pub enum BuildIn {
     Bool(bool),
     Int(BigInt),
@@ -30,30 +29,25 @@ pub enum BuildIn {
     Not
 }
 
-#[derive(Debug)]
 pub struct Object {
-    buildin: BuildIn,
-    attrs: HashMap<String, Any>
+    pub buildin: BuildIn,
+    pub attrs: HashMap<String, Any>
 }
 
-#[derive(Debug)]
 pub struct DefinedFunction {
     args: Rc<Expr>,
     body: Rc<Cmd>
 }
 
-#[derive(Debug)]
-pub struct BuildInFunction(fn(&VecDeque<Any>, Any) -> Result<Any>);
+pub struct BuildInFunction(fn(VecDeque<Any>, Any) -> Result<Any>);
 
-#[derive(Debug)]
 pub enum Function {
     BuildInFunction(BuildInFunction),
     DefinedFunction(DefinedFunction)
 }
 
-#[derive(Debug)]
 pub enum WdAny {
     Obj(Object),
-    Func(Function)
+    Func(String, Function)
 }
 pub type Any = Rc<RefCell<WdAny>>;

@@ -74,18 +74,34 @@ pub fn set_attr(obj: Any,  key: &str, val: Any) -> Result<()> {
 /// call a `Any` function
 /// 
 /// either function or a object with `__call__` attr
-pub fn call(obj: Any, args: &VecDeque<Any>, state: Any) -> Result<Any> {
+pub fn call(obj: Any, args: VecDeque<Any>, state: Any) -> Result<Any> {
     match &*obj.clone().borrow() {
         WdAny::Obj(_) => {
             match get_self_attr(obj.clone(), "__init__") {
-                Some(f) => call(f, args, state),
-                None => match get_attr(obj.clone(), "__call__") {
+                Some(f) => {
+                    let mut args = args;
+                    args.push_front(Rc::new(RefCell::new(WdAny::Obj(Object {
+                        buildin: BuildIn::Not,
+                        attrs: maplit::hashmap! {
+                            "__type__".to_string() => obj
+                        }
+                    }))));
+                    call(f, args, state)
+                },
+                None => match get_self_attr(obj.clone(), "__call__") {
                     Some(f) => call(f, args, state),
-                    None => bail!("cannot call {:?}", obj)
+                    None => match get_attr(obj.clone(), "__call__") {
+                        Some(f) => {
+                            let mut args = args;
+                            args.push_front(obj.clone());
+                            call(f, args, state)
+                        },
+                        None => bail!("cannot call obj")
+                    }
                 },
             }
         },
-        WdAny::Func(f) => {
+        WdAny::Func(fname, f) => {
             match f {
                 Function::BuildInFunction(f) => {
                     (f.0)(args, state)

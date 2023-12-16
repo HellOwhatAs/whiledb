@@ -1,8 +1,20 @@
-if 100 {
-    a = 1234;
-    b = 123;
-    result = 1234 - b * 10;
-    tmp = (result <= 4) && true;
-    print(tmp);
-    print(int(!tmp) != int(tmp) == true);
-}
+print(type(string(1000)));
+
+
+// 
+// print(print());
+// 
+// print(int, string, string(bool), "OK", string(string));
+// if true {
+//     a = 1234;
+//     b = 123;
+//     result = 1234 - b * 10;
+//     tmp = (result <= 4) && true;
+//     print(tmp);
+//     print(int(!tmp) != int(tmp) == true);
+//     print(result);
+// }
+// 
+// if false {
+//     print("NEVER");
+// }
