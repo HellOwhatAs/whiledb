@@ -1,13 +1,33 @@
 use maplit;
-use crate::interpreter::*;
+use crate::{interpreter::*, method};
 
 
 pub fn buildin_string(state: Any) -> Result<Any> {
-    let attrs = maplit::hashmap! {
-        "__init__".to_string() => Rc::new(RefCell::new(
-            WdAny::Func("__init__".to_string(), Function::BuildInFunction(BuildInFunction(string_init)))
-        )),
-        "__type__".to_string() => utils::get_buildin_var("type", state.clone())?
+    let attrs = method!{
+        __init__(state, _self, arg) {
+            match utils::get_father_attr(arg.clone(), "__string__") {
+                Some(f) => utils::call(f, VecDeque::from([arg]), state),
+                None => bail!("cannot convert arg to string"),
+            }
+        }
+        __bool__(state, arg) {
+            match any2string(arg) {
+                Some(s) => match s.len() {
+                    0 => utils::get_buildin_var("false", state),
+                    _ => utils::get_buildin_var("true", state)
+                },
+                None => unreachable!(),
+            }
+        }
+        __int__(state, arg) {
+            match any2string(arg) {
+                Some(s) => Ok(obj_int::bigint2intinstance(s.parse::<BigInt>()?, state)),
+                None => unreachable!(),
+            }
+        }
+        __string__(_state, arg) {
+            Ok(arg)
+        }
     };
     let res = Rc::new(RefCell::new(WdAny::Obj(Object{
         buildin: BuildIn::Not,
@@ -19,6 +39,17 @@ pub fn buildin_string(state: Any) -> Result<Any> {
         res.clone()
     )?;
     Ok(res)
+}
+
+pub fn buildin_string_post(type_obj: Any, state: Any) -> Result<()> {
+    let attrs = maplit::hashmap! {
+        "__type__".to_string() => utils::get_buildin_var("type", state.clone())?,
+        "__name__".to_string() => obj_string::build_string("string", state.clone())
+    };
+    for (k, v) in attrs.into_iter() {
+        utils::set_attr(type_obj.clone(), &k, v)?;
+    }
+    Ok(())
 }
 
 
@@ -40,50 +71,12 @@ pub fn build_string(s: &str, state: Any) -> Any {
     })))
 }
 
-pub fn string_init(args: VecDeque<Any>, state: Any) -> Result<Any> {
-    match args.len() {
-        1 => Ok(build_string("", state)),
-        2 => {
-            let arg = args[1].clone();
-            match &*arg.clone().borrow() {
-                WdAny::Obj(o) => {
-                    match &o.buildin {
-                        BuildIn::Bool(b) => Ok(build_string(&format!("{}", b), state)),
-                        BuildIn::Int(i) => Ok(build_string(&i.to_string(), state)),
-                        BuildIn::String(_) => Ok(arg),
-                        _ => match utils::get_attr(arg.clone(), "__type__") {
-                            Some(t) => match Rc::ptr_eq(&t, &utils::get_buildin_var("type", state.clone())?) {
-                                true => match utils::get_attr(arg.clone(), "__name__") {
-                                    Some(name) => Ok(name),
-                                    None => unreachable!("an type instance without a name ? OMG"),
-                                },
-                                false => match utils::get_attr(arg.clone(), "__string__") {
-                                    Some(f) => {
-                                        let mut args = args;
-                                        args.pop_front();
-                                        utils::call(f, args, state)
-                                    },
-                                    None => bail!("cannot convert arg to string"),
-                                },
-                            },
-                            None => match Rc::ptr_eq(&arg, &utils::get_buildin_var("type", state.clone())?) {
-                                true => Ok(build_string("type", state)),
-                                false => match Rc::ptr_eq(&arg, &utils::get_buildin_var("None", state.clone())?) {
-                                    true => Ok(build_string("None", state)),
-                                    false => unreachable!("an object without a type ? OMG"),
-                                },
-                            },
-                        }
-                    }
-                },
-                WdAny::Func(fname, f) => {
-                    match f {
-                        Function::BuildInFunction(_) => Ok(build_string(&format!("<buildin-func {fname}>"), state)),
-                        Function::DefinedFunction(_) => Ok(build_string(&format!("<func {fname}>"), state)),
-                    }
-                },
-            }
-        }
-        _ => bail!("__init__ of string accepts at most 2 argument")
+pub fn any2string(x: Any) -> Option<String> {
+    match &*x.clone().borrow() {
+        WdAny::Obj(o) => match &o.buildin {
+            BuildIn::String(s) => Some(s.clone()),
+            _ => None
+        },
+        _ => None,
     }
 }

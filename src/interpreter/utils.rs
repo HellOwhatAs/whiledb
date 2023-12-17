@@ -15,6 +15,18 @@ pub fn get_attr(obj: Any, key: &str) -> Option<Any> {
     }
 }
 
+pub fn get_father_attr(obj: Any, key: &str) -> Option<Any> {
+    match &*obj.borrow() {
+        WdAny::Obj(obj) => {
+            match obj.attrs.get("__type__") {
+                Some(t) => get_attr(t.clone(), key),
+                None => None
+            }
+        },
+        _ => None,
+    }
+}
+
 /// just get the attr with no recursive
 pub fn get_self_attr(obj: Any, key: &str) -> Option<Any> {
     match &*obj.borrow() {

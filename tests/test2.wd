@@ -1,20 +1,24 @@
-print(type(string(1000)));
+// "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
 
-// 
-// print(print());
-// 
-// print(int, string, string(bool), "OK", string(string));
-// if true {
-//     a = 1234;
-//     b = 123;
-//     result = 1234 - b * 10;
-//     tmp = (result <= 4) && true;
-//     print(tmp);
-//     print(int(!tmp) != int(tmp) == true);
-//     print(result);
-// }
-// 
-// if false {
-//     print("NEVER");
-// }
+print(print);
+print(print(type(NoneType)));
+
+print(int);
+print(string);
+print(string(bool));
+print("OK");
+print(string(string));
+if true {
+    a = 1234;
+    b = 123;
+    result = 1234 - b * 10;
+    tmp = (result <= 4) && true;
+    print(tmp);
+    print(int(!tmp) != int(tmp) == true);
+    print(result);
+}
+
+if 1001011 {
+    print("NEVER");
+}
