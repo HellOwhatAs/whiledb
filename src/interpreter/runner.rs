@@ -5,12 +5,12 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
         Cmd::Asgn(e1, e2) => {
             match e1.as_ref() {
                 Expr::Var(s) => {
-                    let v2 = eval(e2.clone(), state.clone())?;
+                    let (v2, _) = eval(e2.clone(), state.clone())?;
                     utils::set_attr(state, s, v2)
                 },
                 _ => {
-                    let v1 = eval(e1.clone(), state.clone())?;
-                    let v2 = eval(e2.clone(), state)?;
+                    let (v1, _) = eval(e1.clone(), state.clone())?;
+                    let (v2, _) = eval(e2.clone(), state)?;
                     if Rc::strong_count(&v1) == 1 {
                         bail!("Cannot assign to {:?}", e1)
                     }
@@ -26,7 +26,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
             Ok(())
         },
         Cmd::If(e, c1, c2) => {
-            let v = eval(e.clone(), state.clone())?;
+            let (v, _) = eval(e.clone(), state.clone())?;
             match utils::get_attr(v.clone(), "__bool__") {
                 Some(f) => match obj_bool::any2bool(utils::call(f, VecDeque::from([v.clone()]), state.clone())?) {
                     Some(b) => if b { exec(c1.clone(), state) } else { exec(c2.clone(), state) },
@@ -49,43 +49,50 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
     }
 }
 
-pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any> {
+pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
     match expr.as_ref() {
-        Expr::ConstInt(s) => Ok(obj_int::build_int(s, state)),
+        Expr::ConstInt(s) => Ok((obj_int::build_int(s, state), None)),
         Expr::ConstFloat(_) => todo!(),
-        Expr::ConstString(s) => obj_string::build_string_raw(s, state),
+        Expr::ConstString(s) => Ok((obj_string::build_string_raw(s, state)?, None)),
         Expr::Tuple(es) => {
             let mut vs = VecDeque::new();
             for e in es.iter() {
-                vs.push_back(eval(e.clone(), state.clone())?);
+                vs.push_back(eval(e.clone(), state.clone())?.0);
             }
-            Ok(Rc::new(RefCell::new(WdAny::Obj(Object {
+            Ok((Rc::new(RefCell::new(WdAny::Obj(Object {
                 buildin: BuildIn::Tuple(vs),
                 attrs: HashMap::new()
-            }))))
+            }))), None))
         },
-        Expr::Var(s) => utils::get_var(s, state.clone()),
+        Expr::Var(s) => Ok((utils::get_var(s, state.clone())?, None)),
         Expr::BinOp(op, e1, e2) => {
-            let (v1, v2) = (eval(e1.clone(), state.clone())?,eval(e2.clone(), state.clone())?);
+            let ((v1, _), (v2, _)) = (eval(e1.clone(), state.clone())?,eval(e2.clone(), state.clone())?);
             match (utils::get_attr(v1.clone(), &format!("__{}__", op)), utils::get_attr(v2.clone(), &format!("__r{}__", op))) {
-                (Some(f), _) => utils::call(f, VecDeque::from([v1.clone(), v2.clone()]), state),
-                (None, Some(rf)) => utils::call(rf, VecDeque::from([v2.clone(), v1.clone()]), state),
+                (Some(f), _) => Ok((utils::call(f, VecDeque::from([v1.clone(), v2.clone()]), state)?, None)),
+                (None, Some(rf)) => Ok((utils::call(rf, VecDeque::from([v2.clone(), v1.clone()]), state)?, None)),
                 _ => bail!("Cannot '{}' between 'v1' and 'v2'", op)
             }
         },
         Expr::UnOp(op, e) => {
-            let v = eval(e.clone(), state.clone())?;
+            let (v, _) = eval(e.clone(), state.clone())?;
             match utils::get_attr(v.clone(), &format!("__{}__", op)) {
-                Some(f) => utils::call(f, VecDeque::from([v.clone()]), state),
+                Some(f) => Ok((utils::call(f, VecDeque::from([v.clone()]), state)?, None)),
                 None => bail!("Cannot '{}' 'v'", op)
             }
         },
         Expr::Call(e1, e2) => {
-            let (v1, v2) = (eval(e1.clone(), state.clone())?, eval(e2.clone(), state.clone())?);
+            let ((v1, _self), (v2, _)) = (eval(e1.clone(), state.clone())?, eval(e2.clone(), state.clone())?);
             match &*v2.clone().borrow() {
                 WdAny::Obj(o) => {
                     match &o.buildin {
-                        BuildIn::Tuple(args) => utils::call(v1, args.clone(), state),
+                        BuildIn::Tuple(args) => match _self {
+                            Some(_self) => {
+                                let mut args = args.clone();
+                                args.push_front(_self);
+                                Ok((utils::call(v1, args.clone(), state)?, None))
+                            },
+                            None => Ok((utils::call(v1, args.clone(), state)?, None)),
+                        },
                         _ => unreachable!()
                     }
                 },
@@ -94,10 +101,13 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<Any> {
         },
         Expr::GetItem(_, _) => todo!(),
         Expr::GetAttr(e, s) => {
-            let v = eval(e.clone(), state.clone())?;
-            match utils::get_attr(v, s) {
-                Some(res) => Ok(res),
-                None => bail!("cannot get attr `{}`", s),
+            let (v, _) = eval(e.clone(), state.clone())?;
+            match utils::get_self_attr(v.clone(), s) {
+                Some(res) => Ok((res, None)),
+                None => match utils::get_father_attr(v.clone(), s) {
+                    Some(res) => Ok((res, Some(v))),
+                    None => bail!("cannot get attr `{}`", s)
+                }
             }
         },
     }

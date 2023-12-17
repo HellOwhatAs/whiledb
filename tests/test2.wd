@@ -1,7 +1,8 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
 
-print(print);
+print(true.__and__(true), bool.__or__(false, 1 == 2), true.__type__(""));
+
 print(print(type(NoneType)));
 
 print(int);
