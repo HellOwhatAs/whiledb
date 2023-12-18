@@ -113,12 +113,23 @@ pub fn call(obj: Any, args: VecDeque<Any>, state: Any) -> Result<Any> {
                 },
             }
         },
-        WdAny::Func(fname, f) => {
+        WdAny::Func(_fname, f) => {
             match f {
                 Function::BuildInFunction(f) => {
                     (f.0)(args, state)
                 },
-                Function::DefinedFunction(f) => todo!(),
+                Function::DefinedFunction(f) => {
+                    let mut attrs = maplit::hashmap! { "..".to_string() => state.clone() };
+                    for (k, v) in std::iter::zip(f.args.clone(), args) {
+                        attrs.insert(k, v);
+                    }
+                    let local = Rc::new(RefCell::new(WdAny::Obj(Object{
+                        buildin: BuildIn::Not,
+                        attrs: attrs
+                    })));
+                    let (_, _, ret) = exec(f.body.clone(), local)?;
+                    Ok(ret.unwrap_or(get_buildin_var("None", state)?))
+                },
             }
         },
     }

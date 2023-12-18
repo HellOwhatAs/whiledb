@@ -36,7 +36,7 @@ pub struct Object {
 }
 
 pub struct DefinedFunction {
-    args: Rc<Expr>,
+    args: VecDeque<String>,
     body: Rc<Cmd>
 }
 

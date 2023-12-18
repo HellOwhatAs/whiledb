@@ -74,7 +74,23 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
         },
         Cmd::Continue => Ok((true, false, None)),
         Cmd::Break => Ok((false, true, None)),
-        Cmd::Func(_, _, _) => todo!(),
+        Cmd::Func(fname, args, body) => {
+            utils::set_attr(state.clone(), fname, Rc::new(RefCell::new(WdAny::Func(fname.clone(), Function::DefinedFunction(DefinedFunction{
+                args: {
+                    match args.as_ref() {
+                        Expr::Tuple(t) => {
+                            t.iter().map(|e| match e.as_ref() {
+                                Expr::Var(vname) => vname.clone(),
+                                _ => unreachable!()
+                            }).collect()
+                        },
+                        _ => unreachable!()
+                    }
+                },
+                body: body.clone()
+            })))))?;
+            Ok((false, false, None))
+        },
         Cmd::Class(_, _) => todo!(),
         Cmd::Return(e) => {
             let (v, _) = eval(e.clone(), state.clone())?;
