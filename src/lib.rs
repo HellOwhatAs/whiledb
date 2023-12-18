@@ -66,7 +66,7 @@ mod tests {
             Ok(res) => {
                 println!("{}", format!("{:?}", res).green());
                 let state = init_state().unwrap();
-                interpreter::exec(Rc::new(res), state.clone()).unwrap();
+                interpreter::exec(Rc::new(res), interpreter::utils::local_state(state.clone())).unwrap();
                 match &*state.clone().borrow() {
                     interpreter::WdAny::Obj(o) => println!("{:?}", o.attrs.keys().collect::<Vec<_>>()),
                     _ => unreachable!()

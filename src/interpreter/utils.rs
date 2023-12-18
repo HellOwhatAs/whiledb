@@ -58,17 +58,13 @@ pub fn get_var(name: &str, state: Any) -> Result<Any> {
 
 /// get var from the root state
 pub fn get_buildin_var(name: &str, state: Any) -> Result<Any> {
-    match &*state.borrow() {
-        WdAny::Obj(obj) => {
-            match obj.attrs.get("..") {
-                Some(nonlocal) => get_buildin_var(name, nonlocal.clone()),
-                None => match obj.attrs.get(name) {
-                    Some(res) => Ok(res.clone()),
-                    None => bail!("Undefined buildin-variable `{}`", name)
-                }
-            }
-        },
-        _ => unreachable!(),
+    let root = match get_self_attr(state.clone(), "/") {
+        Some(root) => root,
+        None => state.clone(),
+    };
+    match get_self_attr(root, name) {
+        Some(v) => Ok(v),
+        None => bail!("Undefined buildin-variable `{}`", name),
     }
 }
 
@@ -102,7 +98,7 @@ pub fn call(obj: Any, args: VecDeque<Any>, state: Any) -> Result<Any> {
                 },
                 None => match get_self_attr(obj.clone(), "__call__") {
                     Some(f) => call(f, args, state),
-                    None => match get_attr(obj.clone(), "__call__") {
+                    None => match get_father_attr(obj.clone(), "__call__") {
                         Some(f) => {
                             let mut args = args;
                             args.push_front(obj.clone());
@@ -119,18 +115,27 @@ pub fn call(obj: Any, args: VecDeque<Any>, state: Any) -> Result<Any> {
                     (f.0)(args, state)
                 },
                 Function::DefinedFunction(f) => {
-                    let mut attrs = maplit::hashmap! { "..".to_string() => state.clone() };
+                    let local = local_state(state.clone());
                     for (k, v) in std::iter::zip(f.args.clone(), args) {
-                        attrs.insert(k, v);
+                        set_attr(local.clone(), &k, v)?;
                     }
-                    let local = Rc::new(RefCell::new(WdAny::Obj(Object{
-                        buildin: BuildIn::Not,
-                        attrs: attrs
-                    })));
                     let (_, _, ret) = exec(f.body.clone(), local)?;
                     Ok(ret.unwrap_or(get_buildin_var("None", state)?))
                 },
             }
         },
     }
+}
+
+pub fn local_state(state: Any) -> Any {
+    let mut attrs = maplit::hashmap! { "..".to_string() => state.clone() };
+    match get_self_attr(state.clone(), "/") {
+        Some(root) => attrs.insert("/".to_string(), root),
+        None => attrs.insert("/".to_string(), state.clone()),
+    };
+    let local = Rc::new(RefCell::new(WdAny::Obj(Object{
+        buildin: BuildIn::Not,
+        attrs: attrs
+    })));
+    local
 }

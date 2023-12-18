@@ -32,7 +32,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
         },
         Cmd::If(e, c1, c2) => {
             let (v, _) = eval(e.clone(), state.clone())?;
-            match utils::get_attr(v.clone(), "__bool__") {
+            match utils::get_father_attr(v.clone(), "__bool__") {
                 Some(f) => match obj_bool::any2bool(utils::call(f, VecDeque::from([v.clone()]), state.clone())?) {
                     Some(b) => if b { exec(c1.clone(), state) } else { exec(c2.clone(), state) },
                     None => unreachable!(),
