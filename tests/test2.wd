@@ -1,5 +1,10 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+cnt = 10;
+while cnt > 0 {
+    print(cnt, "SB");
+    cnt = cnt - 1;
+}
 
 print(true.__and__(true), bool.__or__(false, 1 == 2), true.__type__(""));
 

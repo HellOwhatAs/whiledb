@@ -1,12 +1,14 @@
 use crate::interpreter::*;
 
-pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
+/// Result<(continue, break, return)>
+pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
     match ast.as_ref() {
         Cmd::Asgn(e1, e2) => {
             match e1.as_ref() {
                 Expr::Var(s) => {
                     let (v2, _) = eval(e2.clone(), state.clone())?;
-                    utils::set_attr(state, s, v2)
+                    utils::set_attr(state, s, v2)?;
+                    Ok((false, false, None))
                 },
                 _ => {
                     let (v1, _) = eval(e1.clone(), state.clone())?;
@@ -15,15 +17,18 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
                         bail!("Cannot assign to {:?}", e1)
                     }
                     let _ = std::mem::replace(&mut v1.borrow_mut(), v2.borrow_mut());
-                    Ok(())
+                    Ok((false, false, None))
                 }
             }
         },
         Cmd::Seq(cs) => {
             for c in cs.iter() {
-                exec(c.clone(), state.clone())?;
+                let (cont, brk, ret) = exec(c.clone(), state.clone())?;
+                if cont || brk || ret.is_some() {
+                    return Ok((cont, brk, ret))
+                }
             }
-            Ok(())
+            Ok((false, false, None))
         },
         Cmd::If(e, c1, c2) => {
             let (v, _) = eval(e.clone(), state.clone())?;
@@ -35,17 +40,47 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<()> {
                 None => bail!("if condition v cannot convert to bools")
             }
         },
-        Cmd::While(_, _) => todo!(),
+        Cmd::While(e, c) => {
+            loop {
+                let (v, _) = eval(e.clone(), state.clone())?;
+                let b = match utils::get_attr(v.clone(), "__bool__") {
+                    Some(f) => match obj_bool::any2bool(utils::call(f, VecDeque::from([v.clone()]), state.clone())?) {
+                        Some(b) => b,
+                        None => unreachable!(),
+                    },
+                    None => bail!("if condition v cannot convert to bools")
+                };
+                if !b {
+                    break Ok((false, false, None));
+                }
+                let (cont, brk, ret) = exec(c.clone(), state.clone())?;
+                match (cont, brk, ret.clone()) {
+                    (false, false, Some(_)) => {
+                        break Ok((false, false, ret));
+                    }
+                    (false, true, None) => {
+                        break Ok((false, false, None));
+                    }
+                    (_, false, None) => {
+                        continue;
+                    }
+                    _ => unreachable!()
+                }
+            }
+        },
         Cmd::Expr(e) => {
             eval(e.clone(), state)?;
-            Ok(())
+            Ok((false, false, None))
         },
-        Cmd::Continue => todo!(),
-        Cmd::Break => todo!(),
+        Cmd::Continue => Ok((true, false, None)),
+        Cmd::Break => Ok((false, true, None)),
         Cmd::Func(_, _, _) => todo!(),
         Cmd::Class(_, _) => todo!(),
-        Cmd::Return(_) => todo!(),
-        Cmd::Nop => Ok(()),
+        Cmd::Return(e) => {
+            let (v, _) = eval(e.clone(), state.clone())?;
+            Ok((false, false, Some(v)))
+        },
+        Cmd::Nop => Ok((false, false, None)),
     }
 }
 
