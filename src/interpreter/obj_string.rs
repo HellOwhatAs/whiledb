@@ -10,6 +10,18 @@ pub fn buildin_string(state: Any) -> Result<Any> {
                 None => bail!("cannot convert arg to string"),
             }
         }
+        __add__(state, s, other) {
+            match (any2string(s), any2string(other)) {
+                (Some(s1), Some(s2)) => Ok(build_string(&(s1 + &s2), state)),
+                _ => bail!("cannot add string with other")
+            }
+        }
+        len(state, s) {
+            match any2string(s) {
+                Some(s) => Ok(obj_int::bigint2intinstance(BigInt::from(s.len()), state)),
+                None => unreachable!(),
+            }
+        }
         __bool__(state, arg) {
             match any2string(arg) {
                 Some(s) => match s.len() {

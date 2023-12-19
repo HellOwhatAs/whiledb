@@ -9,7 +9,7 @@ class A {
         self.a = self.a + d;
     }
     fn __string__(self) {
-        return string(self.a);
+        return self.__name__ + "[[" + string(self.a) + "]]";
     }
     fn __call__(self, t) {
         return self.a * t;
@@ -18,7 +18,7 @@ class A {
 
 a = A(100);
 print(a.iadd(11));
-print(a);
+print(a, string(a), string(a).len());
 print(a(3));
 
 hello_world = "Hello World!";
