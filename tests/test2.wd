@@ -1,5 +1,26 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+class A {
+    fn __init__(self, a) {
+        self.a = a;
+        return self;
+    }
+    fn iadd(self, d) {
+        self.a = self.a + d;
+    }
+    fn __string__(self) {
+        return string(self.a);
+    }
+    fn __call__(self, t) {
+        return self.a * t;
+    }
+}
+
+a = A(100);
+print(a.iadd(11));
+print(a);
+print(a(3));
+
 hello_world = "Hello World!";
 hello_world.author = "HellOwhatAs";
 

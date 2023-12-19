@@ -96,7 +96,18 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
             })))))?;
             Ok((false, false, None))
         },
-        Cmd::Class(_, _) => todo!(),
+        Cmd::Class(classname, funclist) => {
+            let type_obj = Rc::new(RefCell::new(WdAny::Obj(Object{
+                buildin: BuildIn::Not,
+                attrs: maplit::hashmap! {
+                    "__type__".to_string() => utils::get_buildin_var("type", state.clone())?,
+                    "__name__".to_string() => obj_string::build_string(classname, state.clone())
+                }
+            })));
+            exec(funclist.clone(), type_obj.clone())?;
+            utils::set_attr(state.clone(), classname, type_obj)?;
+            Ok((false, false, None))
+        },
         Cmd::Return(e) => {
             let (v, _) = eval(e.clone(), state.clone())?;
             Ok((false, false, Some(v)))
