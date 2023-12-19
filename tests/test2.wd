@@ -1,5 +1,16 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+hello_world = "Hello World!";
+hello_world.author = "HellOwhatAs";
+
+fn init() {
+    fn ret() {
+        print(hello_world, "by", hello_world.author, "\n");
+    }
+    return ret;
+}
+init()();
+
 fn fib(x) {
     if x <= 1 { return x; }
     return fib(x - 1) + fib(x - 2);

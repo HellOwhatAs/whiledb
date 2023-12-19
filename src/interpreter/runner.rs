@@ -10,6 +10,11 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
                     utils::set_attr(state, s, v2)?;
                     Ok((false, false, None))
                 },
+                Expr::GetAttr(e1, attr1) => {
+                    let (v2, _) = eval(e2.clone(), state.clone())?;
+                    utils::set_attr(eval(e1.clone(), state.clone())?.0, &attr1, v2)?;
+                    Ok((false, false, None))
+                },
                 _ => {
                     let (v1, _) = eval(e1.clone(), state.clone())?;
                     let (v2, _) = eval(e2.clone(), state)?;
