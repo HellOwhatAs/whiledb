@@ -1,4 +1,5 @@
 use maplit;
+use num::ToPrimitive;
 use crate::{interpreter::*, method};
 
 pub fn buildin_list(state: Any) -> Result<Any> {
@@ -46,6 +47,32 @@ pub fn buildin_list(state: Any) -> Result<Any> {
                     _ => unreachable!()
                 },
                 _ => unreachable!(),
+            }
+        }
+        __getitem__(_state, _self, idx) {
+            match &*_self.clone().borrow() {
+                WdAny::Obj(o) => match &o.buildin {
+                    BuildIn::Tuple(t) => {
+                        let idx = match &*idx.clone().borrow() {
+                            WdAny::Obj(o) => match &o.buildin {
+                                BuildIn::Tuple(t) => {
+                                    match t.len() {
+                                        1 => obj_int::wdany2bigint(&*t[0].borrow()).unwrap().to_usize().unwrap(),
+                                        _ => todo!()
+                                    }
+                                },
+                                _ => bail!("index for getitem can only be int")
+                            },
+                            _ => bail!("index for getitem can only be int")
+                        };
+                        match t.get(idx) {
+                            Some(res) => Ok(res.clone()),
+                            None => bail!("index out of range"),
+                        }
+                    },
+                    _ => unreachable!()
+                },
+                _ => unreachable!()
             }
         }
         __bool__(state, _self) {

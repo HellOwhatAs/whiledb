@@ -6,14 +6,14 @@ pub fn buildin_type(state: Any) -> Result<Any> {
         __init__(state, _self, arg) {
             match Rc::ptr_eq(&arg, &utils::get_buildin_var("type", state.clone())?) {
                 true => Ok(arg),
-                false => match utils::get_attr(arg.clone(), "__type__") {
+                false => match utils::get_self_attr(arg.clone(), "__type__") {
                     Some(t) => Ok(t),
                     None => bail!("a object without a type")
                 },
             }
         }
         __string__(_state, _self) {
-            match utils::get_attr(_self, "__name__") {
+            match utils::get_self_attr(_self, "__name__") {
                 Some(name) => Ok(name),
                 None => unreachable!(),
             }

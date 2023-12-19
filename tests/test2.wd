@@ -1,6 +1,14 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+a = "12";
+b = "34";
+a = int(a + "00" + b);
+print(a, a * 2);
+
 arr = [1, 2, 3, 4, 5];
+arr[3] = "IEEE";
+
+
 arr.append("SJTU");
 print(arr);
 print(arr.pop(), arr.pop(), arr);

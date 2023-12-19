@@ -20,7 +20,7 @@ use anyhow::bail;
 use panic as bail;
 pub use runner::{eval, exec};
 pub use states::init_state;
-
+#[derive(Clone)]
 pub enum BuildIn {
     Bool(bool),
     Int(BigInt),
@@ -29,24 +29,25 @@ pub enum BuildIn {
     Tuple(VecDeque<Any>),
     Not
 }
-
+#[derive(Clone)]
 pub struct Object {
     pub buildin: BuildIn,
     pub attrs: HashMap<String, Any>
 }
-
+#[derive(Clone)]
 pub struct DefinedFunction {
     args: VecDeque<String>,
     body: Rc<Cmd>
 }
-
+#[derive(Clone)]
 pub struct BuildInFunction(fn(VecDeque<Any>, Any) -> Result<Any>);
-
+#[derive(Clone)]
 pub enum Function {
     BuildInFunction(BuildInFunction),
     DefinedFunction(DefinedFunction)
 }
 
+#[derive(Clone)]
 pub enum WdAny {
     Obj(Object),
     Func(String, Function)

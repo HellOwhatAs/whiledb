@@ -17,11 +17,11 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
                 },
                 _ => {
                     let (v1, _) = eval(e1.clone(), state.clone())?;
-                    let (v2, _) = eval(e2.clone(), state)?;
+                    let (v2, _) = eval(e2.clone(), state.clone())?;
                     if Rc::strong_count(&v1) == 1 {
                         bail!("Cannot assign to {:?}", e1)
                     }
-                    let _ = std::mem::replace(&mut v1.borrow_mut(), v2.borrow_mut());
+                    let _ = std::mem::replace(&mut *v1.borrow_mut(), (*v2).borrow().clone());
                     Ok((false, false, None))
                 }
             }
@@ -48,7 +48,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
         Cmd::While(e, c) => {
             loop {
                 let (v, _) = eval(e.clone(), state.clone())?;
-                let b = match utils::get_attr(v.clone(), "__bool__") {
+                let b = match utils::get_father_attr(v.clone(), "__bool__") {
                     Some(f) => match obj_bool::any2bool(utils::call(f, VecDeque::from([v.clone()]), state.clone())?) {
                         Some(b) => b,
                         None => unreachable!(),
@@ -131,7 +131,7 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
         Expr::Var(s) => Ok((utils::get_var(s, state.clone())?, None)),
         Expr::BinOp(op, e1, e2) => {
             let ((v1, _), (v2, _)) = (eval(e1.clone(), state.clone())?,eval(e2.clone(), state.clone())?);
-            match (utils::get_attr(v1.clone(), &format!("__{}__", op)), utils::get_attr(v2.clone(), &format!("__r{}__", op))) {
+            match (utils::get_father_attr(v1.clone(), &format!("__{}__", op)), utils::get_father_attr(v2.clone(), &format!("__r{}__", op))) {
                 (Some(f), _) => Ok((utils::call(f, VecDeque::from([v1.clone(), v2.clone()]), state)?, None)),
                 (None, Some(rf)) => Ok((utils::call(rf, VecDeque::from([v2.clone(), v1.clone()]), state)?, None)),
                 _ => bail!("Cannot '{}' between 'v1' and 'v2'", op)
@@ -139,7 +139,7 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
         },
         Expr::UnOp(op, e) => {
             let (v, _) = eval(e.clone(), state.clone())?;
-            match utils::get_attr(v.clone(), &format!("__{}__", op)) {
+            match utils::get_father_attr(v.clone(), &format!("__{}__", op)) {
                 Some(f) => Ok((utils::call(f, VecDeque::from([v.clone()]), state)?, None)),
                 None => bail!("Cannot '{}' 'v'", op)
             }
@@ -158,7 +158,13 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
                 None => unreachable!(),
             }
         },
-        Expr::GetItem(_, _) => todo!(),
+        Expr::GetItem(e1, e2) => {
+            let ((v1, _), (v2, _)) = (eval(e1.clone(), state.clone())?,eval(e2.clone(), state.clone())?);
+            match utils::get_father_attr(v1.clone(), "__getitem__") {
+                Some(f) => Ok((utils::call(f, VecDeque::from_iter([v1, v2]), state)?, None)),
+                None => bail!("cannot getitem from v1"),
+            }
+        },
         Expr::GetAttr(e, s) => {
             let (v, _) = eval(e.clone(), state.clone())?;
             match utils::get_self_attr(v.clone(), s) {

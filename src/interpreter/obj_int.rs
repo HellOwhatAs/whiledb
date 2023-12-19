@@ -221,7 +221,7 @@ pub fn build_int(raw: &str, state: Any) -> Any {
     })))
 }
 
-fn wdany2bigint(x: &WdAny) -> Option<&BigInt> {
+pub fn wdany2bigint(x: &WdAny) -> Option<&BigInt> {
     match x {
         WdAny::Obj(o) => {
             match &o.buildin {
