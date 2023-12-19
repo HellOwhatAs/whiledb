@@ -126,10 +126,7 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
             for e in es.iter() {
                 vs.push_back(eval(e.clone(), state.clone())?.0);
             }
-            Ok((Rc::new(RefCell::new(WdAny::Obj(Object {
-                buildin: BuildIn::Tuple(vs),
-                attrs: HashMap::new()
-            }))), None))
+            Ok((obj_list::build_list(&vs, state.clone()), None))
         },
         Expr::Var(s) => Ok((utils::get_var(s, state.clone())?, None)),
         Expr::BinOp(op, e1, e2) => {
@@ -149,21 +146,16 @@ pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
         },
         Expr::Call(e1, e2) => {
             let ((v1, _self), (v2, _)) = (eval(e1.clone(), state.clone())?, eval(e2.clone(), state.clone())?);
-            match &*v2.clone().borrow() {
-                WdAny::Obj(o) => {
-                    match &o.buildin {
-                        BuildIn::Tuple(args) => match _self {
-                            Some(_self) => {
-                                let mut args = args.clone();
-                                args.push_front(_self);
-                                Ok((utils::call(v1, args.clone(), state)?, None))
-                            },
-                            None => Ok((utils::call(v1, args.clone(), state)?, None)),
-                        },
-                        _ => unreachable!()
-                    }
+            match obj_list::any2vecdeque(v2) {
+                Some(args) => match _self {
+                    Some(_self) => {
+                        let mut args = args;
+                        args.push_front(_self);
+                        Ok((utils::call(v1, args.clone(), state)?, None))
+                    },
+                    None => Ok((utils::call(v1, args.clone(), state)?, None)),
                 },
-                _ => unreachable!(),
+                None => unreachable!(),
             }
         },
         Expr::GetItem(_, _) => todo!(),

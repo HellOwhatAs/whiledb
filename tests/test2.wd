@@ -1,5 +1,10 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+arr = [1, 2, 3, 4, 5];
+arr.append("SJTU");
+print(arr);
+print(arr.pop(), arr.pop(), arr);
+
 class A {
     fn __init__(self, a) {
         self.a = a;

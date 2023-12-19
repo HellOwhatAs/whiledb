@@ -139,3 +139,16 @@ pub fn local_state(state: Any) -> Any {
     })));
     local
 }
+
+pub fn convert2string(arg: Any, state: Any) -> Result<String> {
+    match utils::get_father_attr(arg.clone(), "__string__") {
+        Some(f) => {
+            let s = utils::call(f, VecDeque::from([arg]), state.clone())?;
+            match obj_string::any2string(s) {
+                Some(s) => Ok(s),
+                None => unreachable!(),
+            }
+        },
+        None => bail!("converting an object that cannot convert to string"),
+    }
+}
