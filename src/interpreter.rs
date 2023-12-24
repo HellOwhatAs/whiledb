@@ -13,7 +13,7 @@ use std::collections::{VecDeque, HashMap};
 use std::rc::Rc;
 use num::BigInt;
 use maplit;
-use anyhow::Result;
+pub use anyhow::Result;
 #[cfg(not(debug_assertions))]
 use anyhow::bail;
 #[cfg(debug_assertions)]
@@ -36,11 +36,11 @@ pub struct Object {
 }
 #[derive(Clone)]
 pub struct DefinedFunction {
-    args: VecDeque<String>,
-    body: Rc<Cmd>
+    pub args: VecDeque<String>,
+    pub body: Rc<Cmd>
 }
 #[derive(Clone)]
-pub struct BuildInFunction(fn(VecDeque<Any>, Any) -> Result<Any>);
+pub struct BuildInFunction(pub fn(VecDeque<Any>, Any) -> Result<Any>);
 #[derive(Clone)]
 pub enum Function {
     BuildInFunction(BuildInFunction),

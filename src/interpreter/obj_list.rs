@@ -42,7 +42,7 @@ pub fn buildin_list(state: Any) -> Result<Any> {
                 WdAny::Obj(o) => match &mut o.buildin {
                     BuildIn::Tuple(t) => match t.pop_back() {
                         Some(x) => Ok(x),
-                        None => bail!("pop from a empty list"),
+                        None => bail!("pop from empty list"),
                     },
                     _ => unreachable!()
                 },
