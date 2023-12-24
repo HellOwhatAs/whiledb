@@ -1,5 +1,23 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+s = "Hello World!";
+s1 = s[0, 5];
+print(s, s1, s[s.len() - 1]);
+
+arr = [1, 2, 3, 4, 5];
+arr1 = arr[1, arr.len()];
+print(arr, arr1);
+arr1[0] = 100;
+print(arr, arr1);
+arr[1] = 1000;
+print(arr, arr1);
+
+a = 100;
+b = a;
+print(a, b);
+a = 300;
+print(a, b);
+
 a = "12";
 b = "34";
 a = int(a + "00" + b);

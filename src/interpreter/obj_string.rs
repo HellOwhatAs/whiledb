@@ -1,4 +1,5 @@
 use maplit;
+use num::ToPrimitive;
 use crate::{interpreter::*, method};
 
 
@@ -16,9 +17,53 @@ pub fn buildin_string(state: Any) -> Result<Any> {
                 _ => bail!("cannot add string with other")
             }
         }
+        __getitem__(state, _self, idx) {
+            let s: VecDeque<char> = match any2string(_self.clone()) {
+                Some(s) => s.chars().collect(),
+                None => unreachable!(),
+            };
+            match &*idx.clone().borrow() {
+                WdAny::Obj(o) => match &o.buildin {
+                    BuildIn::Tuple(t) => {
+                        match t.len() {
+                            1 => {
+                                let idx = match obj_int::wdany2bigint(&*t[0].borrow()) {
+                                    Some(idx) => match idx.to_usize() {
+                                        Some(idx) => idx,
+                                        None => bail!("index overflow usize"),
+                                    },
+                                    None => bail!("index for string must be int"),
+                                };
+                                match s.get(idx) {
+                                    Some(res) => Ok(build_string(&res.to_string(), state)),
+                                    None => bail!("string index out of range"),
+                                }
+                            }
+                            2 => {
+                                let (idxs, idxe) = match (obj_int::wdany2bigint(&*t[0].borrow()), obj_int::wdany2bigint(&*t[1].borrow())) {
+                                    (Some(idxs), Some(idxe)) => match (idxs.to_usize(), idxe.to_usize()) {
+                                        (Some(idxs), Some(idxe)) => (idxs, idxe),
+                                        _ => bail!("index overflow usize"),
+                                    },
+                                    _ => bail!("slice for string must be int"),
+                                };
+                                if idxs > idxe || idxe > s.len() {
+                                    bail!("string index out of range")
+                                }
+                                let res: String = s.range(idxs..idxe).collect();
+                                Ok(build_string(&res, state.clone()))
+                            }
+                            _ => bail!("invalid string index")
+                        }
+                    },
+                    _ => bail!("index for getitem of string can only be int")
+                },
+                _ => bail!("index for getitem of string can only be int")
+            }
+        }
         len(state, s) {
             match any2string(s) {
-                Some(s) => Ok(obj_int::bigint2intinstance(BigInt::from(s.len()), state)),
+                Some(s) => Ok(obj_int::bigint2intinstance(BigInt::from(s.chars().count()), state)),
                 None => unreachable!(),
             }
         }
