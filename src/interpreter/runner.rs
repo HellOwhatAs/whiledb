@@ -21,7 +21,8 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
                     if Rc::strong_count(&v1) == 1 {
                         bail!("Cannot assign to {:?}", e1)
                     }
-                    let _ = std::mem::replace(&mut *v1.borrow_mut(), (*v2).borrow().clone());
+                    let tmp = (*v2).borrow().clone();
+                    let _ = std::mem::replace(&mut *v1.borrow_mut(), tmp);
                     Ok((false, false, None))
                 }
             }
