@@ -120,7 +120,7 @@ pub fn exec(ast: Rc<Cmd>, state: Any) -> Result<(bool, bool, Option<Any>)> {
 pub fn eval(expr: Rc<Expr>, state: Any) -> Result<(Any, Option<Any>)> {
     match expr.as_ref() {
         Expr::ConstInt(s) => Ok((obj_int::build_int(s, state), None)),
-        Expr::ConstFloat(_) => todo!(),
+        Expr::ConstFloat(s) => Ok((obj_float::build_float(s, state), None)),
         Expr::ConstString(s) => Ok((obj_string::build_string_raw(s, state)?, None)),
         Expr::Tuple(es) => {
             let mut vs = VecDeque::new();

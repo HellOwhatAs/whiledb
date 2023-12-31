@@ -82,6 +82,12 @@ pub fn buildin_string(state: Any) -> Result<Any> {
                 None => unreachable!(),
             }
         }
+        __float__(state, arg) {
+            match any2string(arg) {
+                Some(s) => Ok(obj_float::float2any(s.parse::<f64>()?, state)),
+                None => unreachable!(),
+            }
+        }
         __string__(_state, arg) {
             Ok(arg)
         }

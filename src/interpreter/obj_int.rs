@@ -1,4 +1,4 @@
-use num::{BigInt, Zero};
+use num::{BigInt, Zero, ToPrimitive};
 use maplit;
 use crate::{interpreter::*, method};
 
@@ -180,6 +180,16 @@ pub fn buildin_int(state: Any) -> Result<Any> {
         }
         __int__(_state, arg) {
             Ok(arg)
+        }
+        __float__(state, _arg) {
+            let arg = &*_arg.borrow();
+            match wdany2bigint(arg) {
+                Some(i) => match i.to_f64() {
+                    Some(f) => Ok(obj_float::float2any(f, state)),
+                    None => bail!("int too large to convert to float"),
+                },
+                _ => unreachable!(),
+            }
         }
         __string__(state, _arg) {
             let arg = &*_arg.borrow();

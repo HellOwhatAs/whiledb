@@ -66,6 +66,12 @@ pub fn buildin_bool(state: Any) -> Result<Any> {
                 None => unreachable!(),
             }
         }
+        __float__(state, s) {
+            match any2bool(s) {
+                Some(b) => Ok(obj_float::float2any(b as usize as f64, state)),
+                None => unreachable!(),
+            }
+        }
         __string__(state, s) {
             match any2bool(s) {
                 Some(b) => Ok(obj_string::build_string(&b.to_string(), state)),

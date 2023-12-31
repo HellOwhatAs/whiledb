@@ -4,6 +4,7 @@ pub mod states;
 pub mod obj_none;
 pub mod obj_type;
 pub mod obj_int;
+pub mod obj_float;
 pub mod obj_bool;
 pub mod obj_string;
 pub mod obj_list;

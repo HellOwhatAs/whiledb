@@ -9,7 +9,7 @@ rust implementation of [While-DB](https://github.com/HellOwhatAs/While-DB), the 
 - [x] add class and method
 - [x] add `[` `]` to represent array and getitem
 - [x] add string
-- [ ] add interpreter or compiler
+- [x] add interpreter or compiler
   > any object (including the program state) can be represented as `Any`, pointer to `WdAny`
   > `WdAny` is either `Object` or `Function`
   > `Object` has 2 fields `buildin` (store buildin types or `Not`) and `attrs`(a string to `Any` map)

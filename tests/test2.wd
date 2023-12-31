@@ -1,5 +1,9 @@
 // "bool", "NoneType", "true", "false", "type", "None", "int", "string", "print"
 
+a = 2.71828;
+b = 3.1415926;
+print(a, type(a), string(a) + "<<", int(a) + 10000);
+print(a + b, a * b, a + b <= a * b, a + float(20), float(100) / float(1000));
 
 class DisjointSet {
     fn __init__(self, n) {
@@ -140,5 +144,5 @@ if true {
 }
 
 if 1001011 {
-    print("NEVER");
+    print("ALWAYS");
 }
